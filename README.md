@@ -1,3 +1,10 @@
+![screenshot 1](/assets/images/1.png)
+![screenshot 2](/assets/images/2.png)
+![screenshot 3](/assets/images/3.png)
+![screenshot 4](/assets/images/4.png)
+
+---
+
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
