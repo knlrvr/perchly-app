@@ -1,11 +1,3 @@
-Default view (Year) | Monthly view
-:---: | :---:
-![](/assets/images/1.png) | ![](/assets/images/2.png) 
-<strong>Weekly View</strong> | <strong>Daily View</strong> 
-![](/assets/images/3.png) | ![](/assets/images/4.png)
-
----
-
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
