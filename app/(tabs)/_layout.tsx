@@ -1,4 +1,5 @@
 import { Tabs } from 'expo-router';
+import { Moon, Sun } from 'lucide-react-native';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useApp } from '../../context/AppContext';
 
@@ -24,12 +25,14 @@ function Header({ routeName }: { routeName: string }) {
     <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
       <Text style={[styles.headerTitle, { color: colors.text }]}>{title}</Text>
       <TouchableOpacity
-        style={[styles.themeToggle, { backgroundColor: colors.surface, borderColor: colors.border }]}
+        style={[styles.themeToggle, { backgroundColor: colors.background }]}
         onPress={toggleTheme}
       >
-        <Text style={[styles.themeIconText, { color: colors.text }]}>
-          {theme === 'dark' ? 'Light' : 'Dark'}
-        </Text>
+        {theme === 'dark' ? (
+          <Sun color={colors.text} size={20} />
+        ) : (
+          <Moon color={colors.text} size={20} />
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -85,9 +88,9 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: colors.tabBar,
           borderTopColor: colors.border,
-          height: 100,
+          height: 120,
           paddingBottom: 20,
-          paddingTop: 20,
+          paddingTop: 30,
         },
         tabBarItemStyle: {
           paddingHorizontal: 0,
@@ -124,7 +127,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
   },
   themeIconText: {
     fontSize: 14,

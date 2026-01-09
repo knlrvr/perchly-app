@@ -1,7 +1,9 @@
 import { useFocusEffect } from 'expo-router';
+import { ChevronLeft, ChevronRight, PenSquare } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { MOOD_COLORS, MOOD_LABELS, MOOD_ORDER, MoodType, useApp } from '../../context/AppContext';
+
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = [
@@ -119,7 +121,7 @@ export default function DailyTab() {
             style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigateDay(-1)}
           >
-            <Text style={[styles.navButtonText, { color: colors.text }]}>{'<'}</Text>
+            <ChevronLeft color={colors.text} />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={showGoToToday ? goToToday : undefined}>
@@ -133,7 +135,7 @@ export default function DailyTab() {
             style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigateDay(1)}
           >
-            <Text style={[styles.navButtonText, { color: colors.text }]}>{'>'}</Text>
+            <ChevronRight color={colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -143,13 +145,13 @@ export default function DailyTab() {
           </Text>
           <Text style={[styles.dayNumber, { color: colors.text }]}>{dateParts.day}</Text>
           {isToday(selectedDate) && (
-            <View style={[styles.todayBadge, { backgroundColor: colors.button }]}>
+            <View style={[styles.todayBadge, { backgroundColor: colors.border }]}>
               <Text style={styles.todayBadgeText}>Today</Text>
             </View>
           )}
         </View>
 
-        <MoodKey />
+        {/* <MoodKey /> */}
 
         {isFutureDate ? (
           <View style={[styles.messageCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -171,7 +173,7 @@ export default function DailyTab() {
               <Text style={[styles.entryLabel, { color: colors.textSecondary }]}>Mood</Text>
               {canEdit && (
                 <TouchableOpacity onPress={() => setIsEditing(true)}>
-                  <Text style={[styles.editButton, { color: colors.button }]}>Edit</Text>
+                  <PenSquare color={colors.text} size={16} />
                 </TouchableOpacity>
               )}
             </View>
@@ -218,7 +220,7 @@ export default function DailyTab() {
                 styles.noteInput,
                 { backgroundColor: colors.background, color: colors.text, borderColor: colors.border },
               ]}
-              placeholder="What made today special?"
+              placeholder="What happened today?"
               placeholderTextColor={colors.textMuted}
               multiline
               maxLength={240}
@@ -307,7 +309,7 @@ const styles = StyleSheet.create({
   },
   todayBadge: {
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 6,
     marginTop: 8,
   },
   todayBadgeText: {

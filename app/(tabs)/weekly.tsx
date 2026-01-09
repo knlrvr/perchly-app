@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MOOD_COLORS, MOOD_LABELS, MOOD_ORDER, useApp } from '../../context/AppContext';
@@ -92,10 +93,10 @@ export default function WeeklyTab() {
             style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigateWeek(-1)}
           >
-            <Text style={[styles.navButtonText, { color: colors.text }]}>{'<'}</Text>
+            <ChevronLeft color={colors.text} />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={showGoToToday ? goToCurrentWeek : undefined}>
+          <TouchableOpacity onPress={!isCurrentWeek ? goToCurrentWeek : undefined}>
             <Text style={[styles.weekTitle, { color: colors.text }]}>{formatWeekRange()}</Text>
             {!isCurrentWeek && (
               <Text style={[styles.tapHint, { color: colors.textSecondary }]}>Tap to go to current week</Text>
@@ -106,50 +107,63 @@ export default function WeeklyTab() {
             style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigateWeek(1)}
           >
-            <Text style={[styles.navButtonText, { color: colors.text }]}>{'>'}</Text>
+            <ChevronRight color={colors.text} />
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.weekContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.weekContainer, { borderColor: colors.border }]}>
           {weekDays.map((date, index) => {
             const dateKey = formatDateKey(date);
             const entry = entries[dateKey];
             const isToday = dateKey === todayKey;
             const isFuture = dateKey > todayKey;
+            const isLast = index === 6;
 
             return (
               <TouchableOpacity
                 key={dateKey}
                 style={[
                   styles.dayCard,
-                  { borderColor: colors.border },
-                  isToday && [styles.todayCard, { borderColor: colors.button, backgroundColor: colors.background }],
-                  index < 6 && styles.dayCardBorder,
+                  { backgroundColor: colors.surface },
+                  !isLast && { borderRightWidth: 1, borderRightColor: colors.border },
                 ]}
                 onPress={() => handleDayPress(date)}
               >
-                <Text style={[styles.weekdayLabel, { color: colors.textSecondary }]}>
-                  {WEEKDAYS[index]}
-                </Text>
-                <Text
+                {/* Top accent bar for today or mood */}
+                <View 
                   style={[
-                    styles.dayNumber,
-                    { color: isFuture ? colors.textMuted : colors.text },
-                    isToday && { color: colors.button },
-                  ]}
-                >
-                  {date.getDate()}
-                </Text>
-                <Text style={[styles.monthLabel, { color: colors.textMuted }]}>
-                  {date.toLocaleDateString('en-US', { month: 'short' })}
-                </Text>
+                    styles.accentBar,
+                    { 
+                      backgroundColor: entry?.mood 
+                        ? MOOD_COLORS[entry.mood]      // has entry → mood color (works for today or not)
+                        : isToday 
+                          ? colors.textSecondary       // today, no entry → muted gray
+                          : 'transparent'              // not today, no entry → invisible
+                    },
+                  ]} 
+                />
                 
-                <View style={styles.moodContainer}>
-                  {entry?.mood ? (
-                    <View style={[styles.moodDot, { backgroundColor: MOOD_COLORS[entry.mood] }]} />
-                  ) : (
-                    <View style={[styles.moodDotEmpty, { borderColor: colors.border }]} />
-                  )}
+                <View style={styles.dayContent}>
+                  <Text style={[styles.weekdayLabel, { color: colors.textSecondary }]}>
+                    {WEEKDAYS[index]}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.dayNumber,
+                      { color: isFuture ? colors.textMuted : colors.text },
+                      isToday && entry?.mood ? { color: MOOD_COLORS[entry.mood] } : { color: colors.text },
+                    ]}
+                  >
+                    {date.getDate()}
+                  </Text>
+                  
+                  <View style={styles.moodContainer}>
+                    {entry?.mood ? (
+                      <View style={[styles.moodDot, { backgroundColor: MOOD_COLORS[entry.mood] }]} />
+                    ) : (
+                      <View style={[styles.moodDotEmpty, { borderColor: colors.border }]} />
+                    )}
+                  </View>
                 </View>
               </TouchableOpacity>
             );
@@ -177,7 +191,7 @@ export default function WeeklyTab() {
                 <View style={styles.entryHeader}>
                   <Text style={[styles.entryDate, { color: colors.text }]}>
                     {WEEKDAYS[date.getDay()]}, {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    {isToday && <Text style={{ color: colors.button }}> (Today)</Text>}
+                    {isToday && entry?.mood && <Text style={{ color: colors.textMuted }}> (Today)</Text>}
                   </Text>
                   {entry?.mood && (
                     <View style={[styles.moodIndicator, { backgroundColor: MOOD_COLORS[entry.mood] }]} />
@@ -205,8 +219,6 @@ export default function WeeklyTab() {
   );
 }
 
-const showGoToToday = true;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -225,10 +237,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
   },
-  navButtonText: {
-    fontSize: 20,
-    fontWeight: '600',
-  },
   weekTitle: {
     fontSize: 16,
     fontWeight: '600',
@@ -242,21 +250,20 @@ const styles = StyleSheet.create({
   weekContainer: {
     flexDirection: 'row',
     borderWidth: 1,
-    overflow: 'hidden',
     marginBottom: 20,
   },
   dayCard: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 16,
+  },
+  accentBar: {
+    height: 4,
+    width: '100%',
+  },
+  dayContent: {
+    alignItems: 'center',
+    paddingVertical: 12,
     paddingHorizontal: 4,
-  },
-  dayCardBorder: {
-    borderRightWidth: 1,
-  },
-  todayCard: {
-    borderWidth: 2,
-    marginHorizontal: -1,
   },
   weekdayLabel: {
     fontSize: 11,
@@ -266,10 +273,6 @@ const styles = StyleSheet.create({
   dayNumber: {
     fontSize: 20,
     fontWeight: '700',
-  },
-  monthLabel: {
-    fontSize: 10,
-    marginTop: 2,
   },
   moodContainer: {
     marginTop: 8,

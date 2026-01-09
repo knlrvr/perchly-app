@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MOOD_COLORS, MOOD_LABELS, MOOD_ORDER, useApp } from '../../context/AppContext';
 
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -97,7 +99,7 @@ export default function MonthlyTab() {
             style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigateMonth(-1)}
           >
-            <Text style={[styles.navButtonText, { color: colors.text }]}>{'<'}</Text>
+            <ChevronLeft color={colors.text} />
           </TouchableOpacity>
           
           <Text style={[styles.monthTitle, { color: colors.text }]}>
@@ -108,7 +110,7 @@ export default function MonthlyTab() {
             style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigateMonth(1)}
           >
-            <Text style={[styles.navButtonText, { color: colors.text }]}>{'>'}</Text>
+            <ChevronRight color={colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -138,7 +140,10 @@ export default function MonthlyTab() {
                     key={day}
                     style={[
                       styles.dayCell,
-                      isToday && [styles.todayCell, { borderColor: colors.button }],
+                      { 
+                        borderWidth: isToday && entry?.mood ? 1 : 0,
+                      },
+                      isToday && entry?.mood ? [styles.todayCell, { borderColor: MOOD_COLORS[entry.mood] }] : [styles.todayCell, { borderWidth: 0 }] ,
                     ]}
                     onPress={() => handleDayPress(day)}
                   >
@@ -146,7 +151,7 @@ export default function MonthlyTab() {
                       style={[
                         styles.dayText,
                         { color: isFuture ? colors.textMuted : colors.text },
-                        isToday && [styles.todayText, { color: colors.button }],
+                        isToday && [styles.todayText, { color: colors.text }],
                       ]}
                     >
                       {day}
@@ -228,7 +233,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   todayCell: {
-    borderWidth: 2,
+    borderWidth: 1,
   },
   dayText: {
     fontSize: 16,

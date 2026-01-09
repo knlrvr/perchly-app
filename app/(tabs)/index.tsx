@@ -160,7 +160,7 @@ export default function OverviewTab() {
                     <Text style={[styles.entryDate, { color: colors.text }]}>
                       {formatDisplayDate(entry.key)}
                       {entry.key === todayKey && (
-                        <Text style={{ color: colors.textSecondary }}> (Today)</Text>
+                        <Text style={{ color: colors.textMuted }}> (Today)</Text>
                       )}
                     </Text>
                     <View
