@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
-import { Moon, Sun } from 'lucide-react-native';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useApp } from '../../context/AppContext';
+import { Calendar, CalendarDays, CalendarRange, Moon, PenSquare, Sun } from 'lucide-react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { MOOD_IMAGES, useApp } from '../../context/AppContext';
 
 const TAB_TITLES: Record<string, string> = {
   index: 'Year',
@@ -19,19 +19,22 @@ const HEADER_TITLES: Record<string, string> = {
 
 function Header({ routeName }: { routeName: string }) {
   const { colors, theme, toggleTheme } = useApp();
-  const title = HEADER_TITLES[routeName] || 'Mood Tracker';
+  const title = HEADER_TITLES[routeName] || 'Perchly';
 
   return (
     <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-      <Text style={[styles.headerTitle, { color: colors.text }]}>{title}</Text>
+      <View style={styles.headerLeft}>
+        <Image source={MOOD_IMAGES.great} style={styles.headerBird} />
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{title}</Text>
+      </View>
       <TouchableOpacity
-        style={[styles.themeToggle, { backgroundColor: colors.background }]}
+        style={[styles.themeToggle, { backgroundColor: colors.surface, borderColor: colors.border }]}
         onPress={toggleTheme}
       >
         {theme === 'dark' ? (
-          <Sun color={colors.text} size={20} />
+          <Sun size={20} color={colors.text} />
         ) : (
-          <Moon color={colors.text} size={20} />
+          <Moon size={20} color={colors.text} />
         )}
       </TouchableOpacity>
     </View>
@@ -40,37 +43,26 @@ function Header({ routeName }: { routeName: string }) {
 
 function TabIcon({ name, focused }: { name: string; focused: boolean }) {
   const { colors } = useApp();
+  
+  const iconSize = 22;
+  const iconColor = focused ? colors.tabActive : colors.tabInactive;
 
-  const icons: Record<string, string> = {
-    index: 'Y',
-    monthly: 'M',
-    weekly: 'W',
-    daily: 'D',
+  const icons: Record<string, React.ReactNode> = {
+    index: <CalendarDays size={iconSize} color={iconColor} />,
+    monthly: <Calendar size={iconSize} color={iconColor} />,
+    weekly: <CalendarRange size={iconSize} color={iconColor} />,
+    daily: <PenSquare size={iconSize} color={iconColor} />,
   };
 
   return (
     <View style={styles.tabIconContainer}>
-      <View
+      {icons[name]}
+      <Text
+        numberOfLines={1}
         style={[
-          styles.tabIconBox,
-          { 
-            backgroundColor: focused ? colors.text : 'transparent',
-            borderColor: focused ? colors.text : colors.tabInactive,
-          },
+          styles.tabLabel,
+          { color: focused ? colors.tabActive : colors.tabInactive },
         ]}
-      >
-        <Text
-          style={[
-            styles.tabIconText,
-            { color: focused ? colors.background : colors.tabInactive },
-          ]}
-        >
-          {icons[name]}
-        </Text>
-      </View>
-      <Text 
-        numberOfLines={1} 
-        style={[styles.tabLabel, { color: focused ? colors.tabActive : colors.tabInactive }]}
       >
         {TAB_TITLES[name]}
       </Text>
@@ -88,9 +80,9 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: colors.tabBar,
           borderTopColor: colors.border,
-          height: 120,
-          paddingBottom: 20,
-          paddingTop: 30,
+          height: 90,
+          paddingBottom: 24,
+          paddingTop: 12,
         },
         tabBarItemStyle: {
           paddingHorizontal: 0,
@@ -113,44 +105,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 70,
+    paddingTop: 60,
     paddingBottom: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
   },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerBird: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
   headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'Satoshi-Bold',
+    fontWeight: 800,
   },
   themeToggle: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  themeIconText: {
-    fontSize: 14,
-    fontWeight: '500',
+    borderWidth: 1,
+    borderRadius: 22,
   },
   tabIconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: 70,
   },
-  tabIconBox: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-    borderRadius: 55,
-  },
-  tabIconText: {
-    fontSize: 14,
-    fontWeight: '900',
-  },
   tabLabel: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 11,
+    fontFamily: 'Satoshi-Medium',
+    marginTop: 6,
   },
 });

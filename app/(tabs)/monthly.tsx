@@ -1,9 +1,8 @@
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { MOOD_COLORS, MOOD_LABELS, MOOD_ORDER, useApp } from '../../context/AppContext';
-
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { MOOD_IMAGES, MOOD_LABELS, MOOD_ORDER, useApp } from '../../context/AppContext';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = [
@@ -20,7 +19,7 @@ function MoodKey() {
       <View style={styles.moodKeyItems}>
         {MOOD_ORDER.map((mood) => (
           <View key={mood} style={styles.moodKeyItem}>
-            <View style={[styles.moodKeyDot, { backgroundColor: MOOD_COLORS[mood!] }]} />
+            <Image source={MOOD_IMAGES[mood!]} style={styles.moodKeyImage} />
             <Text style={[styles.moodKeyLabel, { color: colors.textSecondary }]}>
               {MOOD_LABELS[mood!]}
             </Text>
@@ -85,11 +84,18 @@ export default function MonthlyTab() {
     router.push('/daily');
   };
 
+  const goToCurrentMonth = () => {
+    setCurrentMonth(today.getMonth());
+    setCurrentYear(today.getFullYear());
+  };
+
   const calendarDays = generateCalendarDays();
   const weeks: (number | null)[][] = [];
   for (let i = 0; i < calendarDays.length; i += 7) {
     weeks.push(calendarDays.slice(i, i + 7));
   }
+
+  const isCurrentMonth = currentMonth === today.getMonth() && currentYear === today.getFullYear();
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -99,18 +105,23 @@ export default function MonthlyTab() {
             style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigateMonth(-1)}
           >
-            <ChevronLeft color={colors.text} />
+            <ChevronLeft color={colors.text} size={24} />
           </TouchableOpacity>
           
-          <Text style={[styles.monthTitle, { color: colors.text }]}>
-            {MONTHS[currentMonth]} {currentYear}
-          </Text>
+          <TouchableOpacity onPress={!isCurrentMonth ? goToCurrentMonth : undefined}>
+            <Text style={[styles.monthTitle, { color: colors.text }]}>
+              {MONTHS[currentMonth]} {currentYear}
+            </Text>
+            {!isCurrentMonth && (
+              <Text style={[styles.tapHint, { color: colors.textSecondary }]}>Tap for current month</Text>
+            )}
+          </TouchableOpacity>
           
           <TouchableOpacity
             style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigateMonth(1)}
           >
-            <ChevronRight color={colors.text} />
+            <ChevronRight color={colors.text} size={24} />
           </TouchableOpacity>
         </View>
 
@@ -138,26 +149,33 @@ export default function MonthlyTab() {
                 return (
                   <TouchableOpacity
                     key={day}
-                    style={[
-                      styles.dayCell,
-                      { 
-                        borderWidth: isToday && entry?.mood ? 1 : 0,
-                      },
-                      isToday && entry?.mood ? [styles.todayCell, { borderColor: MOOD_COLORS[entry.mood] }] : [styles.todayCell, { borderWidth: 0 }] ,
-                    ]}
+                    style={styles.dayCell}
                     onPress={() => handleDayPress(day)}
                   >
-                    <Text
-                      style={[
-                        styles.dayText,
-                        { color: isFuture ? colors.textMuted : colors.text },
-                        isToday && [styles.todayText, { color: colors.text }],
-                      ]}
-                    >
-                      {day}
-                    </Text>
-                    {entry?.mood && (
-                      <View style={[styles.moodDot, { backgroundColor: MOOD_COLORS[entry.mood] }]} />
+                    {entry?.mood ? (
+                      <View style={[
+                        styles.moodCircle,
+                        isToday && styles.todayCircle,
+                        isToday && { borderColor: colors.button }
+                      ]}>
+                        <Image source={MOOD_IMAGES[entry.mood]} style={styles.moodImage} />
+                      </View>
+                    ) : (
+                      <View style={[
+                        styles.emptyCircle,
+                        { backgroundColor: 'transparent' },
+                        isToday && styles.todayCircle,
+                        isToday && { borderColor: colors.button }
+                      ]}>
+                        <Text
+                          style={[
+                            styles.dayText,
+                            { color: isFuture ? colors.textMuted : colors.textSecondary },
+                          ]}
+                        >
+                          {day}
+                        </Text>
+                      </View>
                     )}
                   </TouchableOpacity>
                 );
@@ -170,7 +188,7 @@ export default function MonthlyTab() {
           ))}
         </View>
 
-        <MoodKey />
+        {/* <MoodKey /> */}
 
         <View style={{ height: 20 }} />
       </ScrollView>
@@ -195,16 +213,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-  },
-  navButtonText: {
-    fontSize: 20,
-    fontWeight: '600',
+    borderRadius: 22,
   },
   monthTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Bold',
+    textAlign: 'center',
+  },
+  tapHint: {
+    fontSize: 11,
+    fontFamily: 'Satoshi-Regular',
+    textAlign: 'center',
+    marginTop: 2,
   },
   calendar: {
+    borderRadius: 16,
     borderWidth: 1,
     padding: 12,
     marginBottom: 20,
@@ -220,7 +243,7 @@ const styles = StyleSheet.create({
   },
   weekdayText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
   },
   weekRow: {
     flexDirection: 'row',
@@ -230,30 +253,40 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 4,
+    padding: 2,
   },
-  todayCell: {
-    borderWidth: 1,
+  moodCircle: {
+    width: '90%',
+    aspectRatio: 1,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  emptyCircle: {
+    width: '90%',
+    aspectRatio: 1,
+    borderRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  todayCircle: {
+    borderWidth: 3,
+  },
+  moodImage: {
+    width: '100%',
+    height: '100%',
   },
   dayText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  todayText: {
-    fontWeight: '700',
-  },
-  moodDot: {
-    width: 6,
-    height: 6,
-    marginTop: 2,
+    fontSize: 14,
+    fontFamily: 'Satoshi-Medium',
   },
   moodKey: {
     padding: 16,
     borderWidth: 1,
+    borderRadius: 12,
   },
   moodKeyTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Bold',
     marginBottom: 12,
   },
   moodKeyItems: {
@@ -264,13 +297,15 @@ const styles = StyleSheet.create({
   moodKeyItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
-  moodKeyDot: {
-    width: 12,
-    height: 12,
+  moodKeyImage: {
+    width: 24,
+    height: 24,
+    borderRadius: 2,
   },
   moodKeyLabel: {
     fontSize: 12,
+    fontFamily: 'Satoshi-Regular',
   },
 });

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { ImageSourcePropType } from 'react-native';
 
 export type MoodType = 'great' | 'good' | 'ok' | 'notgood' | 'bad' | null;
 type ThemeType = 'dark' | 'light';
@@ -13,12 +14,20 @@ export interface EntriesData {
   [key: string]: DayEntry;
 }
 
+export const MOOD_IMAGES: Record<string, ImageSourcePropType> = {
+  great: require('../assets/moods/perchly-great.png'),
+  good: require('../assets/moods/perchly-good.png'),
+  ok: require('../assets/moods/perchly-ok.png'),
+  notgood: require('../assets/moods/perchly-notgood.png'),
+  bad: require('../assets/moods/perchly-bad.png'),
+};
+
 export const MOOD_COLORS: Record<string, string> = {
-  great: '#22c55e',
-  good: '#3b82f6',
-  ok: '#eab308',
-  notgood: '#f97316',
-  bad: '#ef4444',
+  great: '#a8e6cf',
+  good: '#88c9f2',
+  ok: '#b8c5d6',
+  notgood: '#d4a9c7',
+  bad: '#e88a9e',
 };
 
 export const MOOD_LABELS: Record<string, string> = {
@@ -33,32 +42,32 @@ export const MOOD_ORDER: MoodType[] = ['great', 'good', 'ok', 'notgood', 'bad'];
 
 export const THEMES = {
   dark: {
-    background: '#0d1117',
-    surface: '#161b22',
-    border: '#30363d',
-    text: '#fff',
-    textSecondary: '#8b949e',
-    textMuted: '#666',
-    empty: '#1e1e1e',
-    button: '#238636',
-    buttonSecondary: '#21262d',
-    tabBar: '#161b22',
-    tabInactive: '#8b949e',
-    tabActive: '#fff',
+    background: '#1a1a2e',
+    surface: '#252542',
+    border: '#3d3d5c',
+    text: '#ffffff',
+    textSecondary: '#a0a0b8',
+    textMuted: '#6b6b80',
+    empty: '#2d2d44',
+    button: '#6c63ff',
+    buttonSecondary: '#3d3d5c',
+    tabBar: '#252542',
+    tabInactive: '#6b6b80',
+    tabActive: '#ffffff',
   },
   light: {
-    background: '#ffffff',
-    surface: '#f6f8fa',
-    border: '#d0d7de',
-    text: '#1f2328',
-    textSecondary: '#656d76',
-    textMuted: '#999',
-    empty: '#ebedf0',
-    button: '#2da44e',
-    buttonSecondary: '#f3f4f6',
-    tabBar: '#f6f8fa',
-    tabInactive: '#656d76',
-    tabActive: '#1f2328',
+    background: '#f8f9fa',
+    surface: '#ffffff',
+    border: '#e0e0e0',
+    text: '#2d2d3a',
+    textSecondary: '#6b6b80',
+    textMuted: '#a0a0b0',
+    empty: '#eef0f2',
+    button: '#6c63ff',
+    buttonSecondary: '#f0f0f5',
+    tabBar: '#ffffff',
+    tabInactive: '#a0a0b0',
+    tabActive: '#2d2d3a',
   },
 };
 
@@ -86,7 +95,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [entries, setEntries] = useState<EntriesData>({});
-  const [theme, setTheme] = useState<ThemeType>('dark');
+  const [theme, setTheme] = useState<ThemeType>('light');
   const [selectedDate, setSelectedDate] = useState('');
   const [todayKey, setTodayKey] = useState('');
   const shouldResetDailyRef = useRef(true);

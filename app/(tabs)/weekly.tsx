@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { MOOD_COLORS, MOOD_LABELS, MOOD_ORDER, useApp } from '../../context/AppContext';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { MOOD_IMAGES, MOOD_LABELS, MOOD_ORDER, useApp } from '../../context/AppContext';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEKDAYS_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 function MoodKey() {
   const { colors } = useApp();
@@ -15,7 +16,7 @@ function MoodKey() {
       <View style={styles.moodKeyItems}>
         {MOOD_ORDER.map((mood) => (
           <View key={mood} style={styles.moodKeyItem}>
-            <View style={[styles.moodKeyDot, { backgroundColor: MOOD_COLORS[mood!] }]} />
+            <Image source={MOOD_IMAGES[mood!]} style={styles.moodKeyImage} />
             <Text style={[styles.moodKeyLabel, { color: colors.textSecondary }]}>
               {MOOD_LABELS[mood!]}
             </Text>
@@ -93,13 +94,13 @@ export default function WeeklyTab() {
             style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigateWeek(-1)}
           >
-            <ChevronLeft color={colors.text} />
+            <ChevronLeft color={colors.text} size={24} />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={!isCurrentWeek ? goToCurrentWeek : undefined}>
             <Text style={[styles.weekTitle, { color: colors.text }]}>{formatWeekRange()}</Text>
             {!isCurrentWeek && (
-              <Text style={[styles.tapHint, { color: colors.textSecondary }]}>Tap to go to current week</Text>
+              <Text style={[styles.tapHint, { color: colors.textSecondary }]}>Tap for current week</Text>
             )}
           </TouchableOpacity>
 
@@ -107,11 +108,11 @@ export default function WeeklyTab() {
             style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigateWeek(1)}
           >
-            <ChevronRight color={colors.text} />
+            <ChevronRight color={colors.text} size={24} />
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.weekContainer, { borderColor: colors.border }]}>
+        <View style={[styles.weekContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {weekDays.map((date, index) => {
             const dateKey = formatDateKey(date);
             const entry = entries[dateKey];
@@ -124,56 +125,58 @@ export default function WeeklyTab() {
                 key={dateKey}
                 style={[
                   styles.dayCard,
-                  { backgroundColor: colors.surface },
                   !isLast && { borderRightWidth: 1, borderRightColor: colors.border },
                 ]}
                 onPress={() => handleDayPress(date)}
               >
-                {/* Top accent bar for today or mood */}
-                <View 
-                  style={[
-                    styles.accentBar,
-                    { 
-                      backgroundColor: entry?.mood 
-                        ? MOOD_COLORS[entry.mood]      // has entry → mood color (works for today or not)
-                        : isToday 
-                          ? colors.textSecondary       // today, no entry → muted gray
-                          : 'transparent'              // not today, no entry → invisible
-                    },
-                  ]} 
-                />
+                <Text style={[
+                  styles.weekdayLabel, 
+                  { color: isToday ? colors.button : colors.textSecondary }
+                ]}>
+                  {WEEKDAYS[index]}
+                </Text>
                 
-                <View style={styles.dayContent}>
-                  <Text style={[styles.weekdayLabel, { color: colors.textSecondary }]}>
-                    {WEEKDAYS[index]}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.dayNumber,
-                      { color: isFuture ? colors.textMuted : colors.text },
-                      isToday && entry?.mood ? { color: MOOD_COLORS[entry.mood] } : { color: colors.text },
-                    ]}
-                  >
-                    {date.getDate()}
-                  </Text>
-                  
-                  <View style={styles.moodContainer}>
-                    {entry?.mood ? (
-                      <View style={[styles.moodDot, { backgroundColor: MOOD_COLORS[entry.mood] }]} />
-                    ) : (
-                      <View style={[styles.moodDotEmpty, { borderColor: colors.border }]} />
-                    )}
+                {entry?.mood ? (
+                  <View style={[
+                    styles.moodCircle,
+                    isToday && styles.todayCircle,
+                    isToday && { borderColor: colors.button }
+                  ]}>
+                    <Image source={MOOD_IMAGES[entry.mood]} style={styles.moodImage} />
                   </View>
-                </View>
+                ) : (
+                  <View style={[
+                    styles.emptyCircle,
+                    { backgroundColor: 'transparent' },
+                    isToday && styles.todayCircle,
+                    isToday && { borderColor: colors.button }
+                  ]}>
+                    <Text
+                      style={[
+                        styles.dayNumber,
+                        { color: isFuture ? colors.textMuted : colors.text },
+                      ]}
+                    >
+                      {date.getDate()}
+                    </Text>
+                  </View>
+                )}
+
+                <Text style={[
+                  styles.dateLabel, 
+                  { color: isToday ? colors.button : colors.textMuted }
+                ]}>
+                  {date.getDate()}
+                </Text>
               </TouchableOpacity>
             );
           })}
         </View>
 
-        <MoodKey />
+        {/* <MoodKey /> */}
 
         <View style={styles.entriesSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>This Week's Entries</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>This Week</Text>
           {weekDays.map((date) => {
             const dateKey = formatDateKey(date);
             const entry = entries[dateKey];
@@ -188,26 +191,32 @@ export default function WeeklyTab() {
                 style={[styles.entryCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
                 onPress={() => handleDayPress(date)}
               >
-                <View style={styles.entryHeader}>
-                  <Text style={[styles.entryDate, { color: colors.text }]}>
-                    {WEEKDAYS[date.getDay()]}, {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    {isToday && entry?.mood && <Text style={{ color: colors.textMuted }}> (Today)</Text>}
-                  </Text>
-                  {entry?.mood && (
-                    <View style={[styles.moodIndicator, { backgroundColor: MOOD_COLORS[entry.mood] }]} />
+                <View style={styles.entryLeft}>
+                  {entry?.mood ? (
+                    <Image source={MOOD_IMAGES[entry.mood]} style={styles.entryMoodImage} />
+                  ) : (
+                    <View style={[styles.entryEmptyCircle, { backgroundColor: colors.empty }]}>
+                      <Text style={[styles.entryEmptyText, { color: colors.textMuted }]}>?</Text>
+                    </View>
                   )}
                 </View>
-                {entry?.note ? (
-                  <Text style={[styles.entryNote, { color: colors.textSecondary }]} numberOfLines={2}>
-                    {entry.note}
+                <View style={styles.entryRight}>
+                  <Text style={[styles.entryDate, { color: colors.text }]}>
+                    {WEEKDAYS_FULL[date.getDay()]}, {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {isToday && <Text style={{ color: colors.button }}> • Today</Text>}
                   </Text>
-                ) : entry ? (
-                  <Text style={[styles.entryNoteEmpty, { color: colors.textMuted }]}>No note</Text>
-                ) : (
-                  <Text style={[styles.entryNoteEmpty, { color: colors.textMuted }]}>
-                    {isFuture ? 'Future date' : 'No entry yet - tap to add'}
-                  </Text>
-                )}
+                  {entry?.note ? (
+                    <Text style={[styles.entryNote, { color: colors.textSecondary }]} numberOfLines={2}>
+                      {entry.note}
+                    </Text>
+                  ) : entry ? (
+                    <Text style={[styles.entryNoteEmpty, { color: colors.textMuted }]}>No note added</Text>
+                  ) : (
+                    <Text style={[styles.entryNoteEmpty, { color: colors.textMuted }]}>
+                      {isFuture ? 'Future date' : 'Tap to add entry'}
+                    </Text>
+                  )}
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -236,67 +245,75 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
+    borderRadius: 22,
   },
   weekTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Bold',
     textAlign: 'center',
   },
   tapHint: {
     fontSize: 11,
+    fontFamily: 'Satoshi-Regular',
     textAlign: 'center',
     marginTop: 2,
   },
   weekContainer: {
     flexDirection: 'row',
     borderWidth: 1,
+    borderRadius: 16,
     marginBottom: 20,
+    overflow: 'hidden',
   },
   dayCard: {
     flex: 1,
-    alignItems: 'center',
-  },
-  accentBar: {
-    height: 4,
-    width: '100%',
-  },
-  dayContent: {
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 4,
   },
   weekdayLabel: {
     fontSize: 11,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontFamily: 'Satoshi-Medium',
+    marginBottom: 8,
   },
-  dayNumber: {
-    fontSize: 20,
-    fontWeight: '700',
+  moodCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 2,
+    overflow: 'hidden',
   },
-  moodContainer: {
-    marginTop: 8,
-    height: 12,
+  emptyCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 2,
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  moodDot: {
-    width: 10,
-    height: 10,
+  todayCircle: {
+    borderWidth: 2,
   },
-  moodDotEmpty: {
-    width: 10,
-    height: 10,
-    borderWidth: 1,
-    borderStyle: 'dashed',
+  moodImage: {
+    width: '100%',
+    height: '100%',
+  },
+  dayNumber: {
+    fontSize: 16,
+    fontFamily: 'Satoshi-Bold',
+  },
+  dateLabel: {
+    fontSize: 10,
+    fontFamily: 'Satoshi-Regular',
+    marginTop: 6,
   },
   moodKey: {
     padding: 16,
     borderWidth: 1,
+    borderRadius: 12,
     marginBottom: 20,
   },
   moodKeyTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Bold',
     marginBottom: 12,
   },
   moodKeyItems: {
@@ -307,48 +324,68 @@ const styles = StyleSheet.create({
   moodKeyItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
-  moodKeyDot: {
-    width: 12,
-    height: 12,
+  moodKeyImage: {
+    width: 24,
+    height: 24,
+    borderRadius: 2,
   },
   moodKeyLabel: {
     fontSize: 12,
+    fontFamily: 'Satoshi-Regular',
   },
   entriesSection: {
     marginTop: 4,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontFamily: 'Satoshi-Bold',
     marginBottom: 12,
   },
   entryCard: {
+    flexDirection: 'row',
     padding: 14,
     borderWidth: 1,
+    borderRadius: 2,
     marginBottom: 10,
-  },
-  entryHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
+  },
+  entryLeft: {
+    marginRight: 14,
+  },
+  entryMoodImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 2,
+  },
+  entryEmptyCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  entryEmptyText: {
+    fontSize: 18,
+    fontFamily: 'Satoshi-Bold',
+  },
+  entryRight: {
+    flex: 1,
   },
   entryDate: {
     fontSize: 14,
-    fontWeight: '600',
-  },
-  moodIndicator: {
-    width: 14,
-    height: 14,
+    fontFamily: 'Satoshi-Bold',
+    marginBottom: 4,
   },
   entryNote: {
     fontSize: 13,
+    fontFamily: 'Satoshi-Regular',
     lineHeight: 18,
   },
   entryNoteEmpty: {
     fontSize: 13,
+    fontFamily: 'Satoshi-Regular',
     fontStyle: 'italic',
   },
 });

@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { MOOD_COLORS, MOOD_LABELS, MOOD_ORDER, useApp } from '../../context/AppContext';
+import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { MOOD_COLORS, MOOD_IMAGES, MOOD_LABELS, MOOD_ORDER, useApp } from '../../context/AppContext';
 
 function MoodKey() {
   const { colors } = useApp();
@@ -12,7 +12,7 @@ function MoodKey() {
       <View style={styles.moodKeyItems}>
         {MOOD_ORDER.map((mood) => (
           <View key={mood} style={styles.moodKeyItem}>
-            <View style={[styles.moodKeyDot, { backgroundColor: MOOD_COLORS[mood!] }]} />
+            <Image source={MOOD_IMAGES[mood!]} style={styles.moodKeyImage} />
             <Text style={[styles.moodKeyLabel, { color: colors.textSecondary }]}>
               {MOOD_LABELS[mood!]}
             </Text>
@@ -129,6 +129,7 @@ export default function OverviewTab() {
                             margin: cellMargin,
                             backgroundColor: moodColor,
                             opacity: day.isPast || day.isToday ? 1 : 0.3,
+                            borderRadius: cellSize / 2,
                           },
                         ]}
                       />
@@ -140,14 +141,17 @@ export default function OverviewTab() {
           </ScrollView>
         </View>
 
-        <MoodKey />
+        {/* Is this necessary on this page? */}
+        {/* <MoodKey /> */}
 
         <View style={styles.entriesSection}>
           <Text style={[styles.entriesTitle, { color: colors.text }]}>Recent Entries</Text>
           {displayedEntries.length === 0 ? (
-            <Text style={[styles.noEntries, { color: colors.textSecondary }]}>
-              No entries yet. Add your first entry for today!
-            </Text>
+            <View style={[styles.emptyState, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
+                No entries yet. Start tracking your mood today!
+              </Text>
+            </View>
           ) : (
             <>
               {displayedEntries.map((entry) => (
@@ -156,34 +160,34 @@ export default function OverviewTab() {
                   style={[styles.entryCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
                   onPress={() => handleDayPress(entry.key)}
                 >
-                  <View style={styles.entryHeader}>
+                  <View style={styles.entryLeft}>
+                    <Image source={MOOD_IMAGES[entry.mood!]} style={styles.entryMoodImage} />
+                  </View>
+                  <View style={styles.entryRight}>
                     <Text style={[styles.entryDate, { color: colors.text }]}>
                       {formatDisplayDate(entry.key)}
                       {entry.key === todayKey && (
-                        <Text style={{ color: colors.textMuted }}> (Today)</Text>
+                        <Text style={{ color: colors.button }}> • Today</Text>
                       )}
                     </Text>
-                    <View
-                      style={[styles.moodIndicator, { backgroundColor: MOOD_COLORS[entry.mood!] }]}
-                    />
+                    {entry.note ? (
+                      <Text style={[styles.entryNote, { color: colors.textSecondary }]} numberOfLines={2}>
+                        {entry.note}
+                      </Text>
+                    ) : (
+                      <Text style={[styles.entryNoteEmpty, { color: colors.textMuted }]}>No note</Text>
+                    )}
                   </View>
-                  {entry.note ? (
-                    <Text style={[styles.entryNote, { color: colors.textSecondary }]} numberOfLines={2}>
-                      {entry.note}
-                    </Text>
-                  ) : (
-                    <Text style={[styles.entryNoteEmpty, { color: colors.textMuted }]}>No note</Text>
-                  )}
                 </TouchableOpacity>
               ))}
 
               {hasMoreEntries && (
                 <TouchableOpacity
-                  style={[styles.showMoreButton, { borderColor: colors.border }]}
+                  style={[styles.showMoreButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
                   onPress={() => setVisibleEntries((prev) => prev + 7)}
                 >
-                  <Text style={[styles.showMoreText, { color: colors.textSecondary }]}>
-                    Show 7 more ({sortedEntries.length - visibleEntries} remaining)
+                  <Text style={[styles.showMoreText, { color: colors.text }]}>
+                    Show more ({sortedEntries.length - visibleEntries} remaining)
                   </Text>
                 </TouchableOpacity>
               )}
@@ -203,13 +207,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   yearTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 28,
+    fontFamily: 'Satoshi-Black',
     textAlign: 'center',
-    marginVertical: 16,
+    marginVertical: 20,
   },
   graphContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   grid: {
     flexDirection: 'row',
@@ -221,11 +225,12 @@ const styles = StyleSheet.create({
   moodKey: {
     padding: 16,
     borderWidth: 1,
+    borderRadius: 12,
     marginBottom: 24,
   },
   moodKeyTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Bold',
     marginBottom: 12,
   },
   moodKeyItems: {
@@ -236,63 +241,79 @@ const styles = StyleSheet.create({
   moodKeyItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
-  moodKeyDot: {
-    width: 12,
-    height: 12,
+  moodKeyImage: {
+    width: 24,
+    height: 24,
+    borderRadius: 2,
   },
   moodKeyLabel: {
     fontSize: 12,
+    fontFamily: 'Satoshi-Regular',
   },
   entriesSection: {
     flex: 1,
   },
   entriesTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Bold',
     marginBottom: 16,
   },
-  noEntries: {
+  emptyState: {
+    padding: 32,
+    borderWidth: 1,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  emptyStateText: {
     fontSize: 14,
+    fontFamily: 'Satoshi-Regular',
     textAlign: 'center',
-    paddingVertical: 32,
   },
   entryCard: {
-    padding: 16,
-    borderWidth: 1,
-    marginBottom: 12,
-  },
-  entryHeader: {
     flexDirection: 'row',
+    padding: 14,
+    borderWidth: 1,
+    borderRadius: 12,
+    marginBottom: 10,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+  },
+  entryLeft: {
+    marginRight: 14,
+  },
+  entryMoodImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 2,
+  },
+  entryRight: {
+    flex: 1,
   },
   entryDate: {
     fontSize: 14,
-    fontWeight: '600',
-  },
-  moodIndicator: {
-    width: 16,
-    height: 16,
+    fontFamily: 'Satoshi-Bold',
+    marginBottom: 4,
   },
   entryNote: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+    fontFamily: 'Satoshi-Regular',
+    lineHeight: 18,
   },
   entryNoteEmpty: {
-    fontSize: 14,
+    fontSize: 13,
+    fontFamily: 'Satoshi-Regular',
     fontStyle: 'italic',
   },
   showMoreButton: {
     paddingVertical: 14,
     borderWidth: 1,
+    borderRadius: 12,
     alignItems: 'center',
     marginTop: 4,
   },
   showMoreText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
   },
 });

@@ -1,35 +1,14 @@
 import { useFocusEffect } from 'expo-router';
-import { ChevronLeft, ChevronRight, PenSquare } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { MOOD_COLORS, MOOD_LABELS, MOOD_ORDER, MoodType, useApp } from '../../context/AppContext';
-
+import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { MOOD_IMAGES, MOOD_LABELS, MOOD_ORDER, MoodType, useApp } from '../../context/AppContext';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
-
-function MoodKey() {
-  const { colors } = useApp();
-
-  return (
-    <View style={[styles.moodKey, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-      <Text style={[styles.moodKeyTitle, { color: colors.text }]}>Mood Key</Text>
-      <View style={styles.moodKeyItems}>
-        {MOOD_ORDER.map((mood) => (
-          <View key={mood} style={styles.moodKeyItem}>
-            <View style={[styles.moodKeyDot, { backgroundColor: MOOD_COLORS[mood!] }]} />
-            <Text style={[styles.moodKeyLabel, { color: colors.textSecondary }]}>
-              {MOOD_LABELS[mood!]}
-            </Text>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-}
 
 export default function DailyTab() {
   const { 
@@ -121,13 +100,16 @@ export default function DailyTab() {
             style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigateDay(-1)}
           >
-            <ChevronLeft color={colors.text} />
+            <ChevronLeft color={colors.text} size={24} />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={showGoToToday ? goToToday : undefined}>
             <Text style={[styles.dateTitle, { color: colors.text }]}>{dateParts.weekday}</Text>
+            <Text style={[styles.dateSubtitle, { color: colors.textSecondary }]}>
+              {dateParts.month} {dateParts.day}, {dateParts.year}
+            </Text>
             {showGoToToday && (
-              <Text style={[styles.tapHint, { color: colors.textSecondary }]}>Tap to go to today</Text>
+              <Text style={[styles.tapHint, { color: colors.button }]}>Tap for today</Text>
             )}
           </TouchableOpacity>
 
@@ -135,92 +117,85 @@ export default function DailyTab() {
             style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => navigateDay(1)}
           >
-            <ChevronRight color={colors.text} />
+            <ChevronRight color={colors.text} size={24} />
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.calendarCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.monthYear, { color: colors.textSecondary }]}>
-            {dateParts.month} {dateParts.year}
-          </Text>
-          <Text style={[styles.dayNumber, { color: colors.text }]}>{dateParts.day}</Text>
-          {isToday(selectedDate) && (
-            <View style={[styles.todayBadge, { backgroundColor: colors.border }]}>
-              <Text style={styles.todayBadgeText}>Today</Text>
-            </View>
-          )}
-        </View>
-
-        {/* <MoodKey /> */}
-
         {isFutureDate ? (
-          <View style={[styles.messageCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.messageTitle, { color: colors.text }]}>Future Date</Text>
-            <Text style={[styles.messageText, { color: colors.textSecondary }]}>
-              You can't add an entry for this day yet. Come back when it arrives!
+          <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.emptyHeroCircle, { backgroundColor: colors.empty }]}>
+              <Text style={[styles.emptyHeroText, { color: colors.textMuted }]}>?</Text>
+            </View>
+            <Text style={[styles.heroTitle, { color: colors.text }]}>Future Date</Text>
+            <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
+              Come back on this day to log your mood
             </Text>
           </View>
         ) : !entry && !canEdit ? (
-          <View style={[styles.messageCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.messageTitle, { color: colors.text }]}>No Entry</Text>
-            <Text style={[styles.messageText, { color: colors.textSecondary }]}>
-              No mood was recorded for this day.
+          <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.emptyHeroCircle, { backgroundColor: colors.empty }]}>
+              <Text style={[styles.emptyHeroText, { color: colors.textMuted }]}>—</Text>
+            </View>
+            <Text style={[styles.heroTitle, { color: colors.text }]}>No Entry</Text>
+            <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
+              No mood was recorded for this day
             </Text>
           </View>
         ) : !isEditing && entry ? (
-          <View style={[styles.entryDisplay, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={styles.entryHeader}>
-              <Text style={[styles.entryLabel, { color: colors.textSecondary }]}>Mood</Text>
-              {canEdit && (
-                <TouchableOpacity onPress={() => setIsEditing(true)}>
-                  <PenSquare color={colors.text} size={16} />
-                </TouchableOpacity>
-              )}
-            </View>
-            <View style={styles.moodDisplay}>
-              <View style={[styles.moodBadge, { backgroundColor: MOOD_COLORS[entry.mood!] }]}>
-                <Text style={styles.moodLabel}>
-                  {MOOD_LABELS[entry.mood!]}
-                </Text>
-              </View>
-            </View>
-
-            <Text style={[styles.entryLabel, { color: colors.textSecondary, marginTop: 20 }]}>Note</Text>
+          <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Image source={MOOD_IMAGES[entry.mood!]} style={styles.heroMoodImage} />
+            <Text style={[styles.heroTitle, { color: colors.text }]}>{MOOD_LABELS[entry.mood!]}</Text>
+            
             {entry.note ? (
-              <Text style={[styles.noteText, { color: colors.text }]}>{entry.note}</Text>
+              <View style={[styles.noteContainer, { backgroundColor: colors.background }]}>
+                <Text style={[styles.noteText, { color: colors.text }]}>{entry.note}</Text>
+              </View>
             ) : (
-              <Text style={[styles.noteEmpty, { color: colors.textMuted }]}>No note added</Text>
+              <Text style={[styles.heroSubtitle, { color: colors.textMuted }]}>No note added</Text>
+            )}
+
+            {canEdit && (
+              <TouchableOpacity
+                style={[styles.editButton, { borderColor: colors.border }]}
+                onPress={() => setIsEditing(true)}
+              >
+                <Text style={[styles.editButtonText, { color: colors.text }]}>Edit Entry</Text>
+              </TouchableOpacity>
             )}
           </View>
         ) : canEdit ? (
-          <View style={[styles.editForm, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.formLabel, { color: colors.text }]}>How was your day?</Text>
+          <View style={[styles.editCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.editTitle, { color: colors.text }]}>How are you feeling?</Text>
 
-            <View style={styles.moodOptions}>
+            <View style={styles.moodGrid}>
               {MOOD_ORDER.map((mood) => (
                 <TouchableOpacity
                   key={mood}
                   style={[
-                    styles.moodButton,
-                    { backgroundColor: MOOD_COLORS[mood!] },
-                    selectedMood === mood && styles.moodButtonSelected,
+                    styles.moodOption,
+                    selectedMood === mood && styles.moodOptionSelected,
+                    selectedMood === mood && { borderColor: colors.button },
                   ]}
                   onPress={() => setSelectedMood(mood)}
                 >
-                  <Text style={styles.moodButtonText}>{MOOD_LABELS[mood!]}</Text>
+                  <Image source={MOOD_IMAGES[mood!]} style={styles.moodOptionImage} />
+                  <Text style={[
+                    styles.moodOptionLabel,
+                    { color: selectedMood === mood ? colors.text : colors.textSecondary }
+                  ]}>
+                    {MOOD_LABELS[mood!]}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <Text style={[styles.formLabel, { color: colors.text, marginTop: 20 }]}>
-              Add a note (optional)
-            </Text>
+            <Text style={[styles.noteLabel, { color: colors.text }]}>Add a note (optional)</Text>
             <TextInput
               style={[
                 styles.noteInput,
                 { backgroundColor: colors.background, color: colors.text, borderColor: colors.border },
               ]}
-              placeholder="What happened today?"
+              placeholder="What's on your mind?"
               placeholderTextColor={colors.textMuted}
               multiline
               maxLength={240}
@@ -232,7 +207,7 @@ export default function DailyTab() {
             <View style={styles.formButtons}>
               {entry && (
                 <TouchableOpacity
-                  style={[styles.cancelButton, { backgroundColor: colors.buttonSecondary, borderColor: colors.border }]}
+                  style={[styles.cancelButton, { backgroundColor: colors.buttonSecondary }]}
                   onPress={handleCancel}
                 >
                   <Text style={[styles.cancelButtonText, { color: colors.text }]}>Cancel</Text>
@@ -253,6 +228,12 @@ export default function DailyTab() {
             </View>
           </View>
         ) : null}
+
+        {isToday(selectedDate) && (
+          <View style={[styles.todayBadge, { backgroundColor: colors.button }]}>
+            <Text style={styles.todayBadgeText}>Today</Text>
+          </View>
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -277,176 +258,152 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-  },
-  navButtonText: {
-    fontSize: 20,
-    fontWeight: '600',
+    borderRadius: 22,
   },
   dateTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 22,
+    fontFamily: 'Satoshi-Bold',
     textAlign: 'center',
   },
-  tapHint: {
-    fontSize: 11,
+  dateSubtitle: {
+    fontSize: 14,
+    fontFamily: 'Satoshi-Regular',
     textAlign: 'center',
     marginTop: 2,
   },
-  calendarCard: {
-    borderWidth: 1,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 20,
+  tapHint: {
+    fontSize: 12,
+    fontFamily: 'Satoshi-Medium',
+    textAlign: 'center',
+    marginTop: 4,
   },
-  monthYear: {
-    fontSize: 14,
-    fontWeight: '500',
+  heroCard: {
+    borderWidth: 1,
+    borderRadius: 20,
+    padding: 32,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  heroMoodImage: {
+    width: 140,
+    height: 140,
+    borderRadius: 2,
+    marginBottom: 16,
+  },
+  emptyHeroCircle: {
+    width: 140,
+    height: 140,
+    borderRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyHeroText: {
+    fontSize: 48,
+    fontFamily: 'Satoshi-Bold',
+  },
+  heroTitle: {
+    fontSize: 24,
+    fontFamily: 'Satoshi-Bold',
     marginBottom: 8,
   },
-  dayNumber: {
-    fontSize: 64,
-    fontWeight: '700',
+  heroSubtitle: {
+    fontSize: 14,
+    fontFamily: 'Satoshi-Regular',
+    textAlign: 'center',
+  },
+  noteContainer: {
+    width: '100%',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  noteText: {
+    fontSize: 15,
+    fontFamily: 'Satoshi-Regular',
+    lineHeight: 22,
+  },
+  editButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 20,
+  },
+  editButtonText: {
+    fontSize: 14,
+    fontFamily: 'Satoshi-Medium',
   },
   todayBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginTop: 8,
+    alignSelf: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   todayBadgeText: {
     color: '#fff',
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Bold',
   },
-  moodKey: {
-    padding: 16,
+  editCard: {
     borderWidth: 1,
-    marginBottom: 20,
-  },
-  moodKeyTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  moodKeyItems: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-  },
-  moodKeyItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  moodKeyDot: {
-    width: 12,
-    height: 12,
-  },
-  moodKeyLabel: {
-    fontSize: 12,
-  },
-  messageCard: {
-    borderWidth: 1,
-    padding: 32,
-    alignItems: 'center',
-  },
-  messageTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  messageText: {
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  entryDisplay: {
-    borderWidth: 1,
-    padding: 20,
-  },
-  entryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  entryLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  editButton: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  moodDisplay: {
-    alignItems: 'flex-start',
-  },
-  moodBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
-  },
-  moodLabel: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  noteText: {
-    fontSize: 15,
-    lineHeight: 22,
-    marginTop: 8,
-  },
-  noteEmpty: {
-    fontSize: 15,
-    fontStyle: 'italic',
-    marginTop: 8,
-  },
-  editForm: {
-    borderWidth: 1,
-    padding: 20,
-  },
-  formLabel: {
-    fontSize: 16,
-    fontWeight: '600',
+    borderRadius: 20,
+    padding: 24,
     marginBottom: 16,
   },
-  moodOptions: {
+  editTitle: {
+    fontSize: 20,
+    fontFamily: 'Satoshi-Bold',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  moodGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-  },
-  moodButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    alignItems: 'center',
     justifyContent: 'center',
-    opacity: 0.6,
+    gap: 12,
+    marginBottom: 24,
   },
-  moodButtonSelected: {
-    opacity: 1,
-    borderWidth: 3,
-    borderColor: '#fff',
+  moodOption: {
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 2,
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
-  moodButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 13,
+  moodOptionSelected: {
+    borderWidth: 2,
+  },
+  moodOptionImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 2,
+    marginBottom: 6,
+  },
+  moodOptionLabel: {
+    fontSize: 11,
+    fontFamily: 'Satoshi-Medium',
+  },
+  noteLabel: {
+    fontSize: 14,
+    fontFamily: 'Satoshi-Medium',
+    marginBottom: 8,
   },
   noteInput: {
+    borderRadius: 2,
     padding: 14,
     fontSize: 15,
+    fontFamily: 'Satoshi-Regular',
     minHeight: 100,
     textAlignVertical: 'top',
     borderWidth: 1,
   },
   charCount: {
     fontSize: 12,
+    fontFamily: 'Satoshi-Regular',
     textAlign: 'right',
     marginTop: 6,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   formButtons: {
     flexDirection: 'row',
@@ -455,16 +412,17 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     paddingVertical: 14,
+    borderRadius: 2,
     alignItems: 'center',
-    borderWidth: 1,
   },
   cancelButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Bold',
   },
   saveButton: {
     flex: 1,
     paddingVertical: 14,
+    borderRadius: 12,
     alignItems: 'center',
   },
   saveButtonDisabled: {
@@ -473,6 +431,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Bold',
   },
 });
