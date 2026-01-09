@@ -1,7 +1,8 @@
-![screenshot 1](/assets/images/1.png)
-![screenshot 2](/assets/images/2.png)
-![screenshot 3](/assets/images/3.png)
-![screenshot 4](/assets/images/4.png)
+Default view (Year) | Monthly view
+:---: | :---:
+![](/assets/images/1.png) | ![](/assets/images/2.png) 
+<strong>Weekly View</strong> | <strong>Daily View</strong> 
+![](/assets/images/3.png) | ![](/assets/images/4.png)
 
 ---
 
