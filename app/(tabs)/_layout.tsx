@@ -1,35 +1,154 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useApp } from '../../context/AppContext';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+const TAB_TITLES: Record<string, string> = {
+  index: 'Year',
+  monthly: 'Month',
+  weekly: 'Week',
+  daily: 'Day',
+};
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+const HEADER_TITLES: Record<string, string> = {
+  index: 'Overview',
+  monthly: 'Monthly',
+  weekly: 'Weekly',
+  daily: 'Daily',
+};
+
+function Header({ routeName }: { routeName: string }) {
+  const { colors, theme, toggleTheme } = useApp();
+  const title = HEADER_TITLES[routeName] || 'Mood Tracker';
+
+  return (
+    <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+      <Text style={[styles.headerTitle, { color: colors.text }]}>{title}</Text>
+      <TouchableOpacity
+        style={[styles.themeToggle, { backgroundColor: colors.surface, borderColor: colors.border }]}
+        onPress={toggleTheme}
+      >
+        <Text style={[styles.themeIconText, { color: colors.text }]}>
+          {theme === 'dark' ? 'Light' : 'Dark'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function TabIcon({ name, focused }: { name: string; focused: boolean }) {
+  const { colors } = useApp();
+
+  const icons: Record<string, string> = {
+    index: 'Y',
+    monthly: 'M',
+    weekly: 'W',
+    daily: 'D',
+  };
+
+  return (
+    <View style={styles.tabIconContainer}>
+      <View
+        style={[
+          styles.tabIconBox,
+          { 
+            backgroundColor: focused ? colors.text : 'transparent',
+            borderColor: focused ? colors.text : colors.tabInactive,
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.tabIconText,
+            { color: focused ? colors.background : colors.tabInactive },
+          ]}
+        >
+          {icons[name]}
+        </Text>
+      </View>
+      <Text 
+        numberOfLines={1} 
+        style={[styles.tabLabel, { color: focused ? colors.tabActive : colors.tabInactive }]}
+      >
+        {TAB_TITLES[name]}
+      </Text>
+    </View>
+  );
+}
+
+export default function TabsLayout() {
+  const { colors } = useApp();
 
   return (
     <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
+      screenOptions={({ route }) => ({
+        header: () => <Header routeName={route.name} />,
+        tabBarStyle: {
+          backgroundColor: colors.tabBar,
+          borderTopColor: colors.border,
+          height: 100,
+          paddingBottom: 20,
+          paddingTop: 20,
+        },
+        tabBarItemStyle: {
+          paddingHorizontal: 0,
+          minWidth: 0,
+        },
+        tabBarShowLabel: false,
+        tabBarIcon: ({ focused }) => <TabIcon name={route.name} focused={focused} />,
+      })}
+    >
+      <Tabs.Screen name="index" />
+      <Tabs.Screen name="monthly" />
+      <Tabs.Screen name="weekly" />
+      <Tabs.Screen name="daily" />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 70,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  themeToggle: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  themeIconText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  tabIconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 70,
+  },
+  tabIconBox: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+    borderRadius: 55,
+  },
+  tabIconText: {
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  tabLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+});

@@ -1,98 +1,298 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { MOOD_COLORS, MOOD_LABELS, MOOD_ORDER, useApp } from '../../context/AppContext';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+function MoodKey() {
+  const { colors } = useApp();
 
-export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <View style={[styles.moodKey, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <Text style={[styles.moodKeyTitle, { color: colors.text }]}>Mood Key</Text>
+      <View style={styles.moodKeyItems}>
+        {MOOD_ORDER.map((mood) => (
+          <View key={mood} style={styles.moodKeyItem}>
+            <View style={[styles.moodKeyDot, { backgroundColor: MOOD_COLORS[mood!] }]} />
+            <Text style={[styles.moodKeyLabel, { color: colors.textSecondary }]}>
+              {MOOD_LABELS[mood!]}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+export default function OverviewTab() {
+  const router = useRouter();
+  const { entries, colors, formatDateKey, formatDisplayDate, todayKey, navigateToDate } = useApp();
+  const [visibleEntries, setVisibleEntries] = useState(7);
+
+  const generateYearGrid = () => {
+    const year = new Date().getFullYear();
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 31);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const days: { date: Date; key: string; isPast: boolean; isToday: boolean }[] = [];
+    const current = new Date(startDate);
+
+    while (current <= endDate) {
+      const key = formatDateKey(current);
+      const isPast = current < today;
+      const isToday = current.getTime() === today.getTime();
+      days.push({ date: new Date(current), key, isPast, isToday });
+      current.setDate(current.getDate() + 1);
+    }
+
+    return days;
+  };
+
+  const getWeeksGrid = () => {
+    const days = generateYearGrid();
+    const weeks: (typeof days[0] | null)[][] = [];
+
+    const firstDayOfWeek = days[0].date.getDay();
+    const paddedDays: (typeof days[0] | null)[] = [
+      ...Array(firstDayOfWeek).fill(null),
+      ...days,
+    ];
+
+    for (let i = 0; i < paddedDays.length; i += 7) {
+      weeks.push(paddedDays.slice(i, i + 7));
+    }
+
+    return weeks;
+  };
+
+  const getAllEntriesSorted = () => {
+    return Object.entries(entries)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([key, entry]) => ({ key, ...entry }));
+  };
+
+  const handleDayPress = (dateKey: string) => {
+    navigateToDate(dateKey);
+    router.push('/daily');
+  };
+
+  const weeks = getWeeksGrid();
+  const sortedEntries = getAllEntriesSorted();
+  const displayedEntries = sortedEntries.slice(0, visibleEntries);
+  const hasMoreEntries = sortedEntries.length > visibleEntries;
+
+  const screenWidth = Dimensions.get('window').width;
+  const cellSize = Math.floor((screenWidth - 40) / 53);
+  const cellMargin = 1;
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <Text style={[styles.yearTitle, { color: colors.text }]}>{new Date().getFullYear()}</Text>
+
+        <View style={styles.graphContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.grid}>
+              {weeks.map((week, weekIndex) => (
+                <View key={weekIndex} style={styles.week}>
+                  {week.map((day, dayIndex) => {
+                    if (!day) {
+                      return (
+                        <View
+                          key={`empty-${dayIndex}`}
+                          style={[
+                            styles.cell,
+                            {
+                              width: cellSize,
+                              height: cellSize,
+                              margin: cellMargin,
+                              backgroundColor: 'transparent',
+                            },
+                          ]}
+                        />
+                      );
+                    }
+
+                    const entry = entries[day.key];
+                    const moodColor = entry?.mood ? MOOD_COLORS[entry.mood] : colors.empty;
+
+                    return (
+                      <TouchableOpacity
+                        key={day.key}
+                        onPress={() => handleDayPress(day.key)}
+                        style={[
+                          styles.cell,
+                          {
+                            width: cellSize,
+                            height: cellSize,
+                            margin: cellMargin,
+                            backgroundColor: moodColor,
+                            opacity: day.isPast || day.isToday ? 1 : 0.3,
+                          },
+                        ]}
+                      />
+                    );
+                  })}
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+
+        <MoodKey />
+
+        <View style={styles.entriesSection}>
+          <Text style={[styles.entriesTitle, { color: colors.text }]}>Recent Entries</Text>
+          {displayedEntries.length === 0 ? (
+            <Text style={[styles.noEntries, { color: colors.textSecondary }]}>
+              No entries yet. Add your first entry for today!
+            </Text>
+          ) : (
+            <>
+              {displayedEntries.map((entry) => (
+                <TouchableOpacity
+                  key={entry.key}
+                  style={[styles.entryCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  onPress={() => handleDayPress(entry.key)}
+                >
+                  <View style={styles.entryHeader}>
+                    <Text style={[styles.entryDate, { color: colors.text }]}>
+                      {formatDisplayDate(entry.key)}
+                      {entry.key === todayKey && (
+                        <Text style={{ color: colors.textSecondary }}> (Today)</Text>
+                      )}
+                    </Text>
+                    <View
+                      style={[styles.moodIndicator, { backgroundColor: MOOD_COLORS[entry.mood!] }]}
+                    />
+                  </View>
+                  {entry.note ? (
+                    <Text style={[styles.entryNote, { color: colors.textSecondary }]} numberOfLines={2}>
+                      {entry.note}
+                    </Text>
+                  ) : (
+                    <Text style={[styles.entryNoteEmpty, { color: colors.textMuted }]}>No note</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+
+              {hasMoreEntries && (
+                <TouchableOpacity
+                  style={[styles.showMoreButton, { borderColor: colors.border }]}
+                  onPress={() => setVisibleEntries((prev) => prev + 7)}
+                >
+                  <Text style={[styles.showMoreText, { color: colors.textSecondary }]}>
+                    Show 7 more ({sortedEntries.length - visibleEntries} remaining)
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+        </View>
+
+        <View style={{ height: 20 }} />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  yearTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  graphContainer: {
+    marginBottom: 16,
+  },
+  grid: {
+    flexDirection: 'row',
+  },
+  week: {
+    flexDirection: 'column',
+  },
+  cell: {},
+  moodKey: {
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 24,
+  },
+  moodKeyTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  moodKeyItems: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  moodKeyItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
-  stepContainer: {
-    gap: 8,
+  moodKeyDot: {
+    width: 12,
+    height: 12,
+  },
+  moodKeyLabel: {
+    fontSize: 12,
+  },
+  entriesSection: {
+    flex: 1,
+  },
+  entriesTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  noEntries: {
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: 32,
+  },
+  entryCard: {
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  entryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  entryDate: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  moodIndicator: {
+    width: 16,
+    height: 16,
+  },
+  entryNote: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  entryNoteEmpty: {
+    fontSize: 14,
+    fontStyle: 'italic',
+  },
+  showMoreButton: {
+    paddingVertical: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  showMoreText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
