@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Calendar, CalendarDays, CalendarRange, Moon, PenSquare, Sun } from 'lucide-react-native';
+import { Calendar, CalendarDays, CalendarRange, Moon, PenSquare, Search, Sun, User } from 'lucide-react-native';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MOOD_IMAGES, useApp } from '../../context/AppContext';
 
@@ -8,6 +8,8 @@ const TAB_TITLES: Record<string, string> = {
   monthly: 'Month',
   weekly: 'Week',
   daily: 'Day',
+  search: 'Search',
+  profile: 'Profile',
 };
 
 const HEADER_TITLES: Record<string, string> = {
@@ -15,6 +17,8 @@ const HEADER_TITLES: Record<string, string> = {
   monthly: 'Monthly',
   weekly: 'Weekly',
   daily: 'Daily',
+  search: 'Search',
+  profile: 'Profile',
 };
 
 function Header({ routeName }: { routeName: string }) {
@@ -24,8 +28,8 @@ function Header({ routeName }: { routeName: string }) {
   return (
     <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
       <View style={styles.headerLeft}>
-        <Image source={MOOD_IMAGES.great} style={styles.headerBird} />
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{title}</Text>
+        <Image source={MOOD_IMAGES.good} style={styles.headerBird} />
+        <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>{title}</Text>
       </View>
       <TouchableOpacity
         style={[styles.themeToggle, { backgroundColor: colors.surface, borderColor: colors.border }]}
@@ -52,11 +56,15 @@ function TabIcon({ name, focused }: { name: string; focused: boolean }) {
     monthly: <Calendar size={iconSize} color={iconColor} />,
     weekly: <CalendarRange size={iconSize} color={iconColor} />,
     daily: <PenSquare size={iconSize} color={iconColor} />,
+    search: <Search size={iconSize} color={iconColor} />,
+    profile: <User size={iconSize} color={iconColor} />,
   };
 
   return (
     <View style={styles.tabIconContainer}>
-      {icons[name]}
+      <View style={styles.iconWrapper}>
+        {icons[name]}
+      </View>
       <Text
         numberOfLines={1}
         style={[
@@ -96,6 +104,8 @@ export default function TabsLayout() {
       <Tabs.Screen name="monthly" />
       <Tabs.Screen name="weekly" />
       <Tabs.Screen name="daily" />
+      <Tabs.Screen name="search" />
+      <Tabs.Screen name="profile" />
     </Tabs>
   );
 }
@@ -113,17 +123,19 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    flex: 1,
+    marginRight: 12,
   },
   headerBird: {
     width: 36,
     height: 36,
     borderRadius: 18,
+    marginRight: 12,
   },
   headerTitle: {
     fontSize: 24,
     fontFamily: 'Satoshi-Bold',
-    fontWeight: 800,
+    flexShrink: 1,
   },
   themeToggle: {
     width: 44,
@@ -136,11 +148,18 @@ const styles = StyleSheet.create({
   tabIconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 70,
+    width: 60,
+  },
+  iconWrapper: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: 'Satoshi-Medium',
     marginTop: 6,
+    textAlign: 'center',
   },
 });

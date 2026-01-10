@@ -1,7 +1,16 @@
 import { useFocusEffect } from 'expo-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  KeyboardAvoidingView, Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import { MOOD_IMAGES, MOOD_LABELS, MOOD_ORDER, MoodType, useApp } from '../../context/AppContext';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -40,7 +49,7 @@ export default function DailyTab() {
   useEffect(() => {
     if (entry) {
       setSelectedMood(entry.mood);
-      setNote(entry.note);
+      setNote(entry.note || '');
       setIsEditing(false);
     } else {
       setSelectedMood(null);
@@ -69,7 +78,7 @@ export default function DailyTab() {
   const handleCancel = () => {
     if (entry) {
       setSelectedMood(entry.mood);
-      setNote(entry.note);
+      setNote(entry.note || '');
     } else {
       setSelectedMood(null);
       setNote('');
@@ -93,151 +102,160 @@ export default function DailyTab() {
   const showGoToToday = selectedDate !== todayKey;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.navigation}>
-          <TouchableOpacity
-            style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
-            onPress={() => navigateDay(-1)}
-          >
-            <ChevronLeft color={colors.text} size={24} />
-          </TouchableOpacity>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={100}
+    >
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.navigation}>
+            <TouchableOpacity
+              style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={() => navigateDay(-1)}
+            >
+              <ChevronLeft color={colors.text} size={24} />
+            </TouchableOpacity>
 
-          <TouchableOpacity onPress={showGoToToday ? goToToday : undefined}>
-            <Text style={[styles.dateTitle, { color: colors.text }]}>{dateParts.weekday}</Text>
-            <Text style={[styles.dateSubtitle, { color: colors.textSecondary }]}>
-              {dateParts.month} {dateParts.day}, {dateParts.year}
-            </Text>
-            {showGoToToday && (
-              <Text style={[styles.tapHint, { color: colors.button }]}>Tap for today</Text>
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity onPress={showGoToToday ? goToToday : undefined}>
+              <Text style={[styles.dateTitle, { color: colors.text }]}>{dateParts.weekday}</Text>
+              <Text style={[styles.dateSubtitle, { color: colors.textSecondary }]}>
+                {dateParts.month} {dateParts.day}, {dateParts.year}
+              </Text>
+              {showGoToToday && (
+                <Text style={[styles.tapHint, { color: colors.button }]}>Tap for today</Text>
+              )}
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
-            onPress={() => navigateDay(1)}
-          >
-            <ChevronRight color={colors.text} size={24} />
-          </TouchableOpacity>
-        </View>
-
-        {isFutureDate ? (
-          <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={[styles.emptyHeroCircle, { backgroundColor: colors.empty }]}>
-              <Text style={[styles.emptyHeroText, { color: colors.textMuted }]}>?</Text>
-            </View>
-            <Text style={[styles.heroTitle, { color: colors.text }]}>Future Date</Text>
-            <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
-              Come back on this day to log your mood
-            </Text>
+            <TouchableOpacity
+              style={[styles.navButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={() => navigateDay(1)}
+            >
+              <ChevronRight color={colors.text} size={24} />
+            </TouchableOpacity>
           </View>
-        ) : !entry && !canEdit ? (
-          <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={[styles.emptyHeroCircle, { backgroundColor: colors.empty }]}>
-              <Text style={[styles.emptyHeroText, { color: colors.textMuted }]}>—</Text>
-            </View>
-            <Text style={[styles.heroTitle, { color: colors.text }]}>No Entry</Text>
-            <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
-              No mood was recorded for this day
-            </Text>
-          </View>
-        ) : !isEditing && entry ? (
-          <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Image source={MOOD_IMAGES[entry.mood!]} style={styles.heroMoodImage} />
-            <Text style={[styles.heroTitle, { color: colors.text }]}>{MOOD_LABELS[entry.mood!]}</Text>
-            
-            {entry.note ? (
-              <View style={[styles.noteContainer, { backgroundColor: colors.background }]}>
-                <Text style={[styles.noteText, { color: colors.text }]}>{entry.note}</Text>
+
+          {isFutureDate ? (
+            <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={[styles.emptyHeroCircle, { backgroundColor: colors.empty }]}>
+                <Text style={[styles.emptyHeroText, { color: colors.textMuted }]}>?</Text>
               </View>
-            ) : (
-              <Text style={[styles.heroSubtitle, { color: colors.textMuted }]}>No note added</Text>
-            )}
-
-            {canEdit && (
-              <TouchableOpacity
-                style={[styles.editButton, { borderColor: colors.border }]}
-                onPress={() => setIsEditing(true)}
-              >
-                <Text style={[styles.editButtonText, { color: colors.text }]}>Edit Entry</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        ) : canEdit ? (
-          <View style={[styles.editCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.editTitle, { color: colors.text }]}>How are you feeling?</Text>
-
-            <View style={styles.moodGrid}>
-              {MOOD_ORDER.map((mood) => (
-                <TouchableOpacity
-                  key={mood}
-                  style={[
-                    styles.moodOption,
-                    selectedMood === mood && styles.moodOptionSelected,
-                    selectedMood === mood && { borderColor: colors.button },
-                  ]}
-                  onPress={() => setSelectedMood(mood)}
-                >
-                  <Image source={MOOD_IMAGES[mood!]} style={styles.moodOptionImage} />
-                  <Text style={[
-                    styles.moodOptionLabel,
-                    { color: selectedMood === mood ? colors.text : colors.textSecondary }
-                  ]}>
-                    {MOOD_LABELS[mood!]}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              <Text style={[styles.heroTitle, { color: colors.text }]}>Future Date</Text>
+              <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
+                Come back on this day to log your mood
+              </Text>
             </View>
+          ) : !entry && !canEdit ? (
+            <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={[styles.emptyHeroCircle, { backgroundColor: colors.empty }]}>
+                <Text style={[styles.emptyHeroText, { color: colors.textMuted }]}>—</Text>
+              </View>
+              <Text style={[styles.heroTitle, { color: colors.text }]}>No Entry</Text>
+              <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]}>
+                No mood was recorded for this day
+              </Text>
+            </View>
+          ) : !isEditing && entry ? (
+            <View style={[styles.heroCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Image source={MOOD_IMAGES[entry.mood!]} style={styles.heroMoodImage} />
+              <Text style={[styles.heroTitle, { color: colors.text }]}>{MOOD_LABELS[entry.mood!]}</Text>
+              
+              {entry.note ? (
+                <View style={[styles.noteContainer, { backgroundColor: colors.background }]}>
+                  <Text style={[styles.noteText, { color: colors.text }]}>{entry.note}</Text>
+                </View>
+              ) : (
+                <Text style={[styles.heroSubtitle, { color: colors.textMuted }]}>No note added</Text>
+              )}
 
-            <Text style={[styles.noteLabel, { color: colors.text }]}>Add a note (optional)</Text>
-            <TextInput
-              style={[
-                styles.noteInput,
-                { backgroundColor: colors.background, color: colors.text, borderColor: colors.border },
-              ]}
-              placeholder="What's on your mind?"
-              placeholderTextColor={colors.textMuted}
-              multiline
-              maxLength={240}
-              value={note}
-              onChangeText={setNote}
-            />
-            <Text style={[styles.charCount, { color: colors.textSecondary }]}>{note.length}/240</Text>
-
-            <View style={styles.formButtons}>
-              {entry && (
+              {canEdit && (
                 <TouchableOpacity
-                  style={[styles.cancelButton, { backgroundColor: colors.buttonSecondary }]}
-                  onPress={handleCancel}
+                  style={[styles.editButton, { borderColor: colors.border }]}
+                  onPress={() => setIsEditing(true)}
                 >
-                  <Text style={[styles.cancelButtonText, { color: colors.text }]}>Cancel</Text>
+                  <Text style={[styles.editButtonText, { color: colors.text }]}>Edit Entry</Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity
-                style={[
-                  styles.saveButton,
-                  { backgroundColor: colors.button },
-                  !selectedMood && styles.saveButtonDisabled,
-                  !entry && { flex: 1 },
-                ]}
-                onPress={handleSave}
-                disabled={!selectedMood}
-              >
-                <Text style={styles.saveButtonText}>{entry ? 'Update' : 'Save'}</Text>
-              </TouchableOpacity>
             </View>
-          </View>
-        ) : null}
+          ) : canEdit ? (
+            <View style={[styles.editCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Text style={[styles.editTitle, { color: colors.text }]}>How are you feeling?</Text>
 
-        {isToday(selectedDate) && (
-          <View style={[styles.todayBadge, { backgroundColor: colors.button }]}>
-            <Text style={styles.todayBadgeText}>Today</Text>
-          </View>
-        )}
+              <View style={styles.moodGrid}>
+                {MOOD_ORDER.map((mood) => (
+                  <TouchableOpacity
+                    key={mood}
+                    style={[
+                      styles.moodOption,
+                      selectedMood === mood && styles.moodOptionSelected,
+                      selectedMood === mood && { borderColor: colors.button },
+                    ]}
+                    onPress={() => setSelectedMood(mood)}
+                  >
+                    <Image source={MOOD_IMAGES[mood!]} style={styles.moodOptionImage} />
+                    <Text style={[
+                      styles.moodOptionLabel,
+                      { color: selectedMood === mood ? colors.text : colors.textSecondary }
+                    ]}>
+                      {MOOD_LABELS[mood!]}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-        <View style={{ height: 40 }} />
-      </ScrollView>
-    </View>
+              <Text style={[styles.noteLabel, { color: colors.text }]}>Add a note (optional)</Text>
+              <TextInput
+                style={[
+                  styles.noteInput,
+                  { backgroundColor: colors.background, color: colors.text, borderColor: colors.border },
+                ]}
+                placeholder="What's on your mind?"
+                placeholderTextColor={colors.textMuted}
+                multiline
+                maxLength={500}
+                value={note}
+                onChangeText={setNote}
+              />
+              <Text style={[styles.charCount, { color: colors.textSecondary }]}>{note.length}/500</Text>
+
+              <View style={styles.formButtons}>
+                {entry && (
+                  <TouchableOpacity
+                    style={[styles.cancelButton, { backgroundColor: colors.buttonSecondary }]}
+                    onPress={handleCancel}
+                  >
+                    <Text style={[styles.cancelButtonText, { color: colors.text }]}>Cancel</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={[
+                    styles.saveButton,
+                    { backgroundColor: colors.button },
+                    !selectedMood && styles.saveButtonDisabled,
+                    !entry && { flex: 1 },
+                  ]}
+                  onPress={handleSave}
+                  disabled={!selectedMood}
+                >
+                  <Text style={styles.saveButtonText}>{entry ? 'Update' : 'Save'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : null}
+
+          {isToday(selectedDate) && !isEditing && (
+            <View style={[styles.todayBadge, { backgroundColor: colors.button }]}>
+              <Text style={styles.todayBadgeText}>Today</Text>
+            </View>
+          )}
+
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -287,13 +305,13 @@ const styles = StyleSheet.create({
   heroMoodImage: {
     width: 140,
     height: 140,
-    borderRadius: 100,
+    borderRadius: 70,
     marginBottom: 16,
   },
   emptyHeroCircle: {
     width: 140,
     height: 140,
-    borderRadius: 100,
+    borderRadius: 70,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -367,7 +385,7 @@ const styles = StyleSheet.create({
   moodOption: {
     alignItems: 'center',
     padding: 8,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 2,
     borderColor: 'transparent',
   },
@@ -377,7 +395,7 @@ const styles = StyleSheet.create({
   moodOptionImage: {
     width: 56,
     height: 56,
-    borderRadius: 55,
+    borderRadius: 28,
     marginBottom: 6,
   },
   moodOptionLabel: {
@@ -390,7 +408,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   noteInput: {
-    borderRadius: 22,
+    borderRadius: 12,
     padding: 14,
     fontSize: 15,
     fontFamily: 'Satoshi-Regular',
@@ -412,7 +430,7 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
   },
   cancelButtonText: {
@@ -422,7 +440,7 @@ const styles = StyleSheet.create({
   saveButton: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
   },
   saveButtonDisabled: {

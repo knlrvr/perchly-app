@@ -131,7 +131,7 @@ export default function WeeklyTab() {
               >
                 <Text style={[
                   styles.weekdayLabel, 
-                  { color: isToday ? colors.button : colors.textSecondary }
+                  { color: isToday ? colors.text : colors.textSecondary }
                 ]}>
                   {WEEKDAYS[index]}
                 </Text>
@@ -149,7 +149,7 @@ export default function WeeklyTab() {
                     styles.emptyCircle,
                     { backgroundColor: 'transparent' },
                     isToday && styles.todayCircle,
-                    isToday && { borderColor: colors.button }
+                    // isToday && { borderColor: colors.button }
                   ]}>
                     <Text
                       style={[
@@ -164,7 +164,7 @@ export default function WeeklyTab() {
 
                 <Text style={[
                   styles.dateLabel, 
-                  { color: isToday ? colors.button : colors.textMuted }
+                  { color: isToday ? colors.text : colors.textMuted }
                 ]}>
                   {date.getDate()}
                 </Text>
@@ -203,7 +203,7 @@ export default function WeeklyTab() {
                 <View style={styles.entryRight}>
                   <Text style={[styles.entryDate, { color: colors.text }]}>
                     {WEEKDAYS_FULL[date.getDay()]}, {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    {isToday && <Text style={{ color: colors.button }}> • Today</Text>}
+                    {isToday && <Text style={{ color: colors.textMuted }}> • Today</Text>}
                   </Text>
                   {entry?.note ? (
                     <Text style={[styles.entryNote, { color: colors.textSecondary }]} numberOfLines={2}>
