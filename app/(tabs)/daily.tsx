@@ -287,13 +287,13 @@ const styles = StyleSheet.create({
   heroMoodImage: {
     width: 140,
     height: 140,
-    borderRadius: 2,
+    borderRadius: 100,
     marginBottom: 16,
   },
   emptyHeroCircle: {
     width: 140,
     height: 140,
-    borderRadius: 2,
+    borderRadius: 100,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   moodOption: {
     alignItems: 'center',
     padding: 8,
-    borderRadius: 2,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: 'transparent',
   },
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
   moodOptionImage: {
     width: 56,
     height: 56,
-    borderRadius: 2,
+    borderRadius: 55,
     marginBottom: 6,
   },
   moodOptionLabel: {
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   noteInput: {
-    borderRadius: 2,
+    borderRadius: 22,
     padding: 14,
     fontSize: 15,
     fontFamily: 'Satoshi-Regular',
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 2,
+    borderRadius: 8,
     alignItems: 'center',
   },
   cancelButtonText: {
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
   saveButton: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 8,
     alignItems: 'center',
   },
   saveButtonDisabled: {

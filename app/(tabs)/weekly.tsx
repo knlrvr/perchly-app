@@ -140,7 +140,7 @@ export default function WeeklyTab() {
                   <View style={[
                     styles.moodCircle,
                     isToday && styles.todayCircle,
-                    isToday && { borderColor: colors.button }
+                    isToday && { borderColor: 'transparent' }
                   ]}>
                     <Image source={MOOD_IMAGES[entry.mood]} style={styles.moodImage} />
                   </View>
@@ -279,18 +279,18 @@ const styles = StyleSheet.create({
   moodCircle: {
     width: 40,
     height: 40,
-    borderRadius: 2,
+    borderRadius: 22,
     overflow: 'hidden',
   },
   emptyCircle: {
     width: 40,
     height: 40,
-    borderRadius: 2,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
   todayCircle: {
-    borderWidth: 2,
+    borderWidth: 0,
   },
   moodImage: {
     width: '100%',
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   moodKeyImage: {
     width: 24,
     height: 24,
-    borderRadius: 2,
+    borderRadius: 22,
   },
   moodKeyLabel: {
     fontSize: 12,
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 14,
     borderWidth: 1,
-    borderRadius: 2,
+    borderRadius: 22,
     marginBottom: 10,
     alignItems: 'center',
   },
@@ -357,12 +357,12 @@ const styles = StyleSheet.create({
   entryMoodImage: {
     width: 44,
     height: 44,
-    borderRadius: 2,
+    borderRadius: 22,
   },
   entryEmptyCircle: {
     width: 44,
     height: 44,
-    borderRadius: 2,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },

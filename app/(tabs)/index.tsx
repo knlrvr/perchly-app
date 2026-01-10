@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   entryMoodImage: {
     width: 44,
     height: 44,
-    borderRadius: 2,
+    borderRadius: 22,
   },
   entryRight: {
     flex: 1,

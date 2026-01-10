@@ -156,7 +156,7 @@ export default function MonthlyTab() {
                       <View style={[
                         styles.moodCircle,
                         isToday && styles.todayCircle,
-                        isToday && { borderColor: colors.button }
+                        isToday && { borderColor: 'transparent' }
                       ]}>
                         <Image source={MOOD_IMAGES[entry.mood]} style={styles.moodImage} />
                       </View>
@@ -258,18 +258,18 @@ const styles = StyleSheet.create({
   moodCircle: {
     width: '90%',
     aspectRatio: 1,
-    borderRadius: 2,
+    borderRadius: 22,
     overflow: 'hidden',
   },
   emptyCircle: {
     width: '90%',
     aspectRatio: 1,
-    borderRadius: 2,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
   todayCircle: {
-    borderWidth: 3,
+    borderWidth: 0,
   },
   moodImage: {
     width: '100%',
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   moodKeyImage: {
     width: 24,
     height: 24,
-    borderRadius: 2,
+    borderRadius: 22,
   },
   moodKeyLabel: {
     fontSize: 12,
