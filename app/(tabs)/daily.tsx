@@ -192,6 +192,7 @@ export default function DailyTab() {
                       styles.moodOption,
                       selectedMood === mood && styles.moodOptionSelected,
                       selectedMood === mood && { borderColor: colors.button },
+                      selectedMood === mood && { backgroundColor: colors.background }
                     ]}
                     onPress={() => setSelectedMood(mood)}
                   >
@@ -297,7 +298,7 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 8,
     padding: 32,
     alignItems: 'center',
     marginBottom: 16,
@@ -333,7 +334,7 @@ const styles = StyleSheet.create({
   noteContainer: {
     width: '100%',
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 8,
     marginTop: 16,
   },
   noteText: {
@@ -365,7 +366,7 @@ const styles = StyleSheet.create({
   },
   editCard: {
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 8,
     padding: 24,
     marginBottom: 16,
   },
@@ -385,7 +386,7 @@ const styles = StyleSheet.create({
   moodOption: {
     alignItems: 'center',
     padding: 8,
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: 'transparent',
   },

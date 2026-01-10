@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   weekContainer: {
     flexDirection: 'row',
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: 8,
     marginBottom: 20,
     overflow: 'hidden',
   },
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 14,
     borderWidth: 1,
-    borderRadius: 22,
+    borderRadius: 8,
     marginBottom: 10,
     alignItems: 'center',
   },

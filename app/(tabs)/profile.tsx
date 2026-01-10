@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   statCard: {
     width: '47%',
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 8,
     borderWidth: 1,
     alignItems: 'center',
   },
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   },
   section: {
     padding: 20,
-    borderRadius: 16,
+    borderRadius: 8,
     borderWidth: 1,
     marginBottom: 16,
   },
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
   badge: {
     width: '30%',
     padding: 12,
-    borderRadius: 12,
+    borderRadius: 8,
     alignItems: 'center',
   },
   badgePlaceholder: {
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   modalContent: {
-    borderRadius: 20,
+    borderRadius: 8,
     padding: 20,
   },
   modalHeader: {
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   badgeModalContent: {
-    borderRadius: 20,
+    borderRadius: 8,
     padding: 32,
     alignItems: 'center',
   },

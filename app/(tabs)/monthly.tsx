@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   calendar: {
-    borderRadius: 16,
+    borderRadius: 8,
     borderWidth: 1,
     padding: 12,
     marginBottom: 20,

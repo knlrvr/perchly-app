@@ -51,6 +51,7 @@ export const MOOD_IMAGES: Record<string, ImageSourcePropType> = {
   ok: require('../assets/moods/perchly-ok.png'),
   notgood: require('../assets/moods/perchly-notgood.png'),
   bad: require('../assets/moods/perchly-bad.png'),
+  sus: require('../assets/images/sus.png')
 };
 
 export const MOOD_COLORS: Record<string, string> = {
@@ -109,6 +110,136 @@ const THEME_KEY = '@theme_preference';
 const PROFILE_KEY = '@user_profile';
 const BADGES_KEY = '@user_badges';
 
+// Helper functions defined outside component
+const formatDateKeyHelper = (date: Date): string => {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+};
+
+const calculateStreakHelper = (entriesData: EntriesData): StreakData => {
+  const sortedDates = Object.keys(entriesData).sort((a, b) => b.localeCompare(a));
+  
+  if (sortedDates.length === 0) {
+    return { current: 0, longest: 0, totalDays: 0, lastLoggedDate: null };
+  }
+
+  const totalDays = sortedDates.length;
+  const lastLoggedDate = sortedDates[0];
+  
+  // Calculate current streak
+  let currentStreak = 0;
+  let checkDate = new Date();
+  checkDate.setHours(0, 0, 0, 0);
+  
+  // If we haven't logged today, start from yesterday
+  const todayKeyLocal = formatDateKeyHelper(checkDate);
+  if (!entriesData[todayKeyLocal]) {
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
+  
+  while (true) {
+    const dateKey = formatDateKeyHelper(checkDate);
+    if (entriesData[dateKey]) {
+      currentStreak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  
+  // Calculate longest streak
+  let longestStreak = 0;
+  let tempStreak = 0;
+  const sortedAsc = [...sortedDates].sort((a, b) => a.localeCompare(b));
+  
+  for (let i = 0; i < sortedAsc.length; i++) {
+    if (i === 0) {
+      tempStreak = 1;
+    } else {
+      const currentDate = new Date(sortedAsc[i]);
+      const prevDate = new Date(sortedAsc[i - 1]);
+      const diffDays = Math.floor((currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 1) {
+        tempStreak++;
+      } else {
+        longestStreak = Math.max(longestStreak, tempStreak);
+        tempStreak = 1;
+      }
+    }
+  }
+  longestStreak = Math.max(longestStreak, tempStreak);
+  
+  return {
+    current: currentStreak,
+    longest: longestStreak,
+    totalDays,
+    lastLoggedDate,
+  };
+};
+
+const unlockBadge = (badgeId: string, badgesList: Badge[]): Badge[] => {
+  return badgesList.map(b => 
+    b.id === badgeId && !b.unlockedAt 
+      ? { ...b, unlockedAt: new Date().toISOString() } 
+      : b
+  );
+};
+
+const checkBadgesForEntries = (entriesData: EntriesData, currentBadges: Badge[]): Badge[] => {
+  let updatedBadges = [...currentBadges];
+  const entryCount = Object.keys(entriesData).length;
+  
+  if (entryCount === 0) return currentBadges;
+
+  // First entry badge
+  if (entryCount >= 1) {
+    updatedBadges = unlockBadge('first_entry', updatedBadges);
+  }
+
+  // 100 days badge
+  if (entryCount >= 100) {
+    updatedBadges = unlockBadge('hundred_days', updatedBadges);
+  }
+
+  // Note badges
+  const totalNotes = Object.values(entriesData).filter(e => e.note && e.note.trim()).length;
+  if (totalNotes >= 10) {
+    updatedBadges = unlockBadge('note_writer', updatedBadges);
+  }
+  if (totalNotes >= 50) {
+    updatedBadges = unlockBadge('fifty_notes', updatedBadges);
+  }
+
+  // Streak badges
+  const streakData = calculateStreakHelper(entriesData);
+  if (streakData.current >= 7 || streakData.longest >= 7) {
+    updatedBadges = unlockBadge('week_streak', updatedBadges);
+  }
+  if (streakData.current >= 14 || streakData.longest >= 14) {
+    updatedBadges = unlockBadge('two_weeks', updatedBadges);
+  }
+  if (streakData.current >= 30 || streakData.longest >= 30) {
+    updatedBadges = unlockBadge('month_streak', updatedBadges);
+  }
+
+  // Great week badge (check for any 7 consecutive great days in history)
+  const sortedDates = Object.keys(entriesData).sort((a, b) => a.localeCompare(b));
+  let consecutiveGreatDays = 0;
+  for (const dateKey of sortedDates) {
+    if (entriesData[dateKey].mood === 'great') {
+      consecutiveGreatDays++;
+      if (consecutiveGreatDays >= 7) {
+        updatedBadges = unlockBadge('great_week', updatedBadges);
+        break;
+      }
+    } else {
+      consecutiveGreatDays = 0;
+    }
+  }
+
+  return updatedBadges;
+};
+
 interface AppContextType {
   entries: EntriesData;
   theme: ThemeType;
@@ -155,20 +286,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const colors = THEMES[theme];
 
-  const formatDateKey = (date: Date): string => {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-  };
-
-  useEffect(() => {
-    const today = new Date();
-    const key = formatDateKey(today);
-    setTodayKey(key);
-    setSelectedDate(key);
-    loadEntries();
-    loadTheme();
-    loadProfile();
-    loadBadges();
-  }, []);
+  const formatDateKey = formatDateKeyHelper;
 
   const formatDisplayDate = (
     dateKey: string,
@@ -187,49 +305,77 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return dateKey > todayKey;
   };
 
-  const loadEntries = async () => {
-    try {
-      const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setEntries(JSON.parse(stored));
+  // Initialize app on mount
+  useEffect(() => {
+    const initializeApp = async () => {
+      const today = new Date();
+      const key = formatDateKeyHelper(today);
+      setTodayKey(key);
+      setSelectedDate(key);
+      
+      // Load theme
+      try {
+        const storedTheme = await AsyncStorage.getItem(THEME_KEY);
+        if (storedTheme === 'light' || storedTheme === 'dark') {
+          setTheme(storedTheme);
+        }
+      } catch (error) {
+        console.error('Failed to load theme:', error);
       }
-    } catch (error) {
-      console.error('Failed to load entries:', error);
-    }
-  };
 
-  const loadTheme = async () => {
-    try {
-      const stored = await AsyncStorage.getItem(THEME_KEY);
-      if (stored === 'light' || stored === 'dark') {
-        setTheme(stored);
+      // Load profile
+      try {
+        const storedProfile = await AsyncStorage.getItem(PROFILE_KEY);
+        if (storedProfile) {
+          setProfile(JSON.parse(storedProfile));
+        }
+      } catch (error) {
+        console.error('Failed to load profile:', error);
       }
-    } catch (error) {
-      console.error('Failed to load theme:', error);
-    }
-  };
 
-  const loadProfile = async () => {
-    try {
-      const stored = await AsyncStorage.getItem(PROFILE_KEY);
-      if (stored) {
-        setProfile(JSON.parse(stored));
+      // Load entries
+      let loadedEntries: EntriesData = {};
+      try {
+        const storedEntries = await AsyncStorage.getItem(STORAGE_KEY);
+        if (storedEntries) {
+          loadedEntries = JSON.parse(storedEntries);
+          setEntries(loadedEntries);
+        }
+      } catch (error) {
+        console.error('Failed to load entries:', error);
       }
-    } catch (error) {
-      console.error('Failed to load profile:', error);
-    }
-  };
 
-  const loadBadges = async () => {
-    try {
-      const stored = await AsyncStorage.getItem(BADGES_KEY);
-      if (stored) {
-        setBadges(JSON.parse(stored));
+      // Load badges
+      let loadedBadges: Badge[] = BADGES;
+      try {
+        const storedBadges = await AsyncStorage.getItem(BADGES_KEY);
+        if (storedBadges) {
+          loadedBadges = JSON.parse(storedBadges);
+        }
+      } catch (error) {
+        console.error('Failed to load badges:', error);
       }
-    } catch (error) {
-      console.error('Failed to load badges:', error);
-    }
-  };
+
+      // Check and update badges based on entries
+      if (Object.keys(loadedEntries).length > 0) {
+        const updatedBadges = checkBadgesForEntries(loadedEntries, loadedBadges);
+        if (JSON.stringify(updatedBadges) !== JSON.stringify(loadedBadges)) {
+          setBadges(updatedBadges);
+          try {
+            await AsyncStorage.setItem(BADGES_KEY, JSON.stringify(updatedBadges));
+          } catch (error) {
+            console.error('Failed to save badges:', error);
+          }
+        } else {
+          setBadges(loadedBadges);
+        }
+      } else {
+        setBadges(loadedBadges);
+      }
+    };
+    
+    initializeApp();
+  }, []);
 
   const toggleTheme = async () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -250,93 +396,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const saveBadges = async (updatedBadges: Badge[]) => {
-    setBadges(updatedBadges);
-    try {
-      await AsyncStorage.setItem(BADGES_KEY, JSON.stringify(updatedBadges));
-    } catch (error) {
-      console.error('Failed to save badges:', error);
-    }
-  };
-
-  const checkAndUnlockBadge = (badgeId: string, currentBadges: Badge[]): Badge[] => {
-    const badge = currentBadges.find(b => b.id === badgeId);
-    if (badge && !badge.unlockedAt) {
-      return currentBadges.map(b => 
-        b.id === badgeId ? { ...b, unlockedAt: new Date().toISOString() } : b
-      );
-    }
-    return currentBadges;
-  };
-
-  const calculateStreak = useCallback((entriesData: EntriesData): StreakData => {
-    const sortedDates = Object.keys(entriesData).sort((a, b) => b.localeCompare(a));
-    
-    if (sortedDates.length === 0) {
-      return { current: 0, longest: 0, totalDays: 0, lastLoggedDate: null };
-    }
-
-    const totalDays = sortedDates.length;
-    const lastLoggedDate = sortedDates[0];
-    
-    // Calculate current streak
-    let currentStreak = 0;
-    let checkDate = new Date();
-    checkDate.setHours(0, 0, 0, 0);
-    
-    // If we haven't logged today, start from yesterday
-    const todayKeyLocal = formatDateKey(checkDate);
-    if (!entriesData[todayKeyLocal]) {
-      checkDate.setDate(checkDate.getDate() - 1);
-    }
-    
-    while (true) {
-      const dateKey = formatDateKey(checkDate);
-      if (entriesData[dateKey]) {
-        currentStreak++;
-        checkDate.setDate(checkDate.getDate() - 1);
-      } else {
-        break;
-      }
-    }
-    
-    // Calculate longest streak
-    let longestStreak = 0;
-    let tempStreak = 0;
-    const sortedAsc = [...sortedDates].sort((a, b) => a.localeCompare(b));
-    
-    for (let i = 0; i < sortedAsc.length; i++) {
-      if (i === 0) {
-        tempStreak = 1;
-      } else {
-        const currentDate = new Date(sortedAsc[i]);
-        const prevDate = new Date(sortedAsc[i - 1]);
-        const diffDays = Math.floor((currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        if (diffDays === 1) {
-          tempStreak++;
-        } else {
-          longestStreak = Math.max(longestStreak, tempStreak);
-          tempStreak = 1;
-        }
-      }
-    }
-    longestStreak = Math.max(longestStreak, tempStreak);
-    
-    return {
-      current: currentStreak,
-      longest: longestStreak,
-      totalDays,
-      lastLoggedDate,
-    };
-  }, []);
-
-  const streak = calculateStreak(entries);
+  const streak = calculateStreakHelper(entries);
 
   const saveEntry = async (mood: MoodType, note: string) => {
     if (!mood) return;
 
-    const isNewEntry = !entries[todayKey];
     const newEntries = {
       ...entries,
       [todayKey]: { mood, note },
@@ -366,57 +430,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setShowCrisisModal(true);
       }
 
-      // Check badges
-      let updatedBadges = [...badges];
-      
-      // First entry badge
-      if (isNewEntry && Object.keys(newEntries).length === 1) {
-        updatedBadges = checkAndUnlockBadge('first_entry', updatedBadges);
-      }
-      
-      // 100 days badge
-      if (Object.keys(newEntries).length >= 100) {
-        updatedBadges = checkAndUnlockBadge('hundred_days', updatedBadges);
-      }
-
-      // Note badges
-      const totalNotes = Object.values(newEntries).filter(e => e.note && e.note.trim()).length;
-      if (totalNotes >= 10) {
-        updatedBadges = checkAndUnlockBadge('note_writer', updatedBadges);
-      }
-      if (totalNotes >= 50) {
-        updatedBadges = checkAndUnlockBadge('fifty_notes', updatedBadges);
-      }
-
-      // Streak badges
-      const newStreak = calculateStreak(newEntries);
-      if (newStreak.current >= 7) {
-        updatedBadges = checkAndUnlockBadge('week_streak', updatedBadges);
-      }
-      if (newStreak.current >= 14) {
-        updatedBadges = checkAndUnlockBadge('two_weeks', updatedBadges);
-      }
-      if (newStreak.current >= 30) {
-        updatedBadges = checkAndUnlockBadge('month_streak', updatedBadges);
-      }
-
-      // Great week badge (7 consecutive great days)
-      let consecutiveGreatDays = 0;
-      for (const dateKey of sortedDates) {
-        if (newEntries[dateKey].mood === 'great') {
-          consecutiveGreatDays++;
-          if (consecutiveGreatDays >= 7) {
-            updatedBadges = checkAndUnlockBadge('great_week', updatedBadges);
-            break;
-          }
-        } else {
-          consecutiveGreatDays = 0;
-        }
-      }
-
-      // Save badges if changed
+      // Check and update badges
+      const updatedBadges = checkBadgesForEntries(newEntries, badges);
       if (JSON.stringify(updatedBadges) !== JSON.stringify(badges)) {
-        await saveBadges(updatedBadges);
+        setBadges(updatedBadges);
+        await AsyncStorage.setItem(BADGES_KEY, JSON.stringify(updatedBadges));
       }
 
     } catch (error) {

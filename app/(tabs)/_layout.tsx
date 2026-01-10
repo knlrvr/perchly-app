@@ -28,7 +28,7 @@ function Header({ routeName }: { routeName: string }) {
   return (
     <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
       <View style={styles.headerLeft}>
-        <Image source={MOOD_IMAGES.good} style={styles.headerBird} />
+        <Image source={MOOD_IMAGES.sus} style={styles.headerBird} />
         <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>{title}</Text>
       </View>
       <TouchableOpacity
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    fontFamily: 'Satoshi-Bold',
+    fontFamily: 'Satoshi-Black',
     flexShrink: 1,
   },
   themeToggle: {
