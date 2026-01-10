@@ -100,7 +100,7 @@ export default function WeeklyTab() {
           <TouchableOpacity onPress={!isCurrentWeek ? goToCurrentWeek : undefined}>
             <Text style={[styles.weekTitle, { color: colors.text }]}>{formatWeekRange()}</Text>
             {!isCurrentWeek && (
-              <Text style={[styles.tapHint, { color: colors.textSecondary }]}>Tap for current week</Text>
+              <Text style={[styles.tapHint, { color: colors.button }]}>Tap for current week</Text>
             )}
           </TouchableOpacity>
 

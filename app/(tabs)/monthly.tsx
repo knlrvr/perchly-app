@@ -113,7 +113,7 @@ export default function MonthlyTab() {
               {MONTHS[currentMonth]} {currentYear}
             </Text>
             {!isCurrentMonth && (
-              <Text style={[styles.tapHint, { color: colors.textSecondary }]}>Tap for current month</Text>
+              <Text style={[styles.tapHint, { color: colors.button }]}>Tap for current month</Text>
             )}
           </TouchableOpacity>
           
