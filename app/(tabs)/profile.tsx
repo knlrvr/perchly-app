@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   name: {
-    fontSize: 22,
+    fontSize: 32,
     fontFamily: 'Satoshi-Bold',
   },
   memberSince: {
@@ -399,6 +399,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     alignItems: 'center',
+    flexGrow: 1,
   },
   statValue: {
     fontSize: 28,
