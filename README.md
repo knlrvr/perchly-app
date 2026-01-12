@@ -1,6 +1,6 @@
 ![sus Peter](/assets/images/sus.png)
 
-# Perchly - Your Daily Mood Tracker
+# Perchly - Daily Mood Tracker
 
 Peter says hello & welcome! This is **Perchly**. An easy-to-use app for tracking your mood throughout the year, with comprehensive monthly, weekly, and daily breakdowns. Peter just wants you to check in when you can.
 
