@@ -60,6 +60,7 @@ export const MOOD_IMAGES: Record<string, ImageSourcePropType> = {
   ok: require('../assets/moods/perchly-ok.png'),
   notgood: require('../assets/moods/perchly-notgood.png'),
   bad: require('../assets/moods/perchly-bad.png'),
+  sus: require('../assets/images/sus.png')
 };
 
 export const MOOD_COLORS: Record<string, string> = {
