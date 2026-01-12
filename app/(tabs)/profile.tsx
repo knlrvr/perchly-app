@@ -1,6 +1,7 @@
-import { Award, Calendar, Edit2, Flame, TrendingUp, Trophy, X } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { Award, Calendar, Camera, Edit2, Flame, TrendingUp, Trophy, X } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Badge, MOOD_COLORS, MOOD_IMAGES, MOOD_ORDER, useApp } from '../../context/AppContext';
 
 export default function ProfileTab() {
@@ -17,15 +18,37 @@ export default function ProfileTab() {
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [editName, setEditName] = useState(profile?.name || '');
+  const [editImage, setEditImage] = useState<string | null>(profile?.profileImage || null);
 
   const analytics = getAnalytics();
   const unlockedBadges = badges.filter(b => b.unlockedAt);
   const lockedCount = badges.filter(b => !b.unlockedAt).length;
 
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please allow access to your photos to set a profile picture.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setEditImage(result.assets[0].uri);
+    }
+  };
+
   const handleSaveProfile = async () => {
     await updateProfile({
       name: editName,
       createdAt: profile?.createdAt || new Date().toISOString(),
+      profileImage: editImage,
     });
     setShowEditModal(false);
   };
@@ -60,12 +83,42 @@ export default function ProfileTab() {
     return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
 
+  const renderAvatar = (size: number = 64, uri?: string | null) => {
+    const imageUri = uri !== undefined ? uri : profile?.profileImage;
+    if (imageUri) {
+      return (
+        <Image 
+          source={{ uri: imageUri }} 
+          style={{ width: size, height: size, borderRadius: size / 2 }} 
+        />
+      );
+    }
+    return (
+      <Image 
+        source={MOOD_IMAGES.good} 
+        style={{ width: size, height: size, borderRadius: size / 2 }} 
+      />
+    );
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header / Name */}
         <View style={styles.header}>
-          <Image source={MOOD_IMAGES.good} style={styles.avatar} />
+          <TouchableOpacity 
+            onPress={() => {
+              setEditName(profile?.name || '');
+              setEditImage(profile?.profileImage || null);
+              setShowEditModal(true);
+            }}
+            style={[styles.avatarContainer]}
+          >
+            {renderAvatar(72)}
+            <View style={[styles.avatarBadge, { backgroundColor: colors.button }]}>
+              <Camera size={12} color="#fff" />
+            </View>
+          </TouchableOpacity>
           <View style={styles.headerInfo}>
             <Text style={[styles.name, { color: colors.text }]}>
               {profile?.name || 'Perchly User'}
@@ -81,6 +134,7 @@ export default function ProfileTab() {
             style={[styles.editButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => {
               setEditName(profile?.name || '');
+              setEditImage(profile?.profileImage || null);
               setShowEditModal(true);
             }}
           >
@@ -90,22 +144,22 @@ export default function ProfileTab() {
 
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
-          <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.statCard, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}>
             <Flame size={24} color="#ff9500" />
             <Text style={[styles.statValue, { color: colors.text }]}>{streak.current}</Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Current Streak</Text>
           </View>
-          <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.statCard, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}>
             <Trophy size={24} color="#ffd700" />
             <Text style={[styles.statValue, { color: colors.text }]}>{streak.longest}</Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Best Streak</Text>
           </View>
-          <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.statCard, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}>
             <Calendar size={24} color={colors.button} />
             <Text style={[styles.statValue, { color: colors.text }]}>{streak.totalDays}</Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Days Logged</Text>
           </View>
-          <View style={[styles.statCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.statCard, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}>
             <TrendingUp size={24} color="#34c759" />
             <Text style={[styles.statValue, { color: colors.text }]}>{analytics.totalNotes}</Text>
             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Notes Written</Text>
@@ -114,7 +168,7 @@ export default function ProfileTab() {
 
         {/* Mood Distribution */}
         {streak.totalDays > 0 && (
-          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.section, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Mood Distribution</Text>
             <View style={styles.moodDistribution}>
               {MOOD_ORDER.map(mood => {
@@ -145,7 +199,7 @@ export default function ProfileTab() {
 
         {/* Day of Week Insights */}
         {streak.totalDays >= 7 && (
-          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={[styles.section, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Weekly Patterns</Text>
             <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
               Your average mood by day of week
@@ -174,7 +228,7 @@ export default function ProfileTab() {
         )}
 
         {/* Badges */}
-        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Badges</Text>
           
           {unlockedBadges.length > 0 ? (
@@ -185,7 +239,7 @@ export default function ProfileTab() {
                   style={[styles.badge, { backgroundColor: colors.background }]}
                   onPress={() => handleBadgePress(badge)}
                 >
-                  <View style={[styles.badgePlaceholder, { borderColor: colors.button }]}>
+                  <View style={[styles.badgePlaceholder, { borderColor: colors.button, backgroundColor: colors.button + '15' }]}>
                     <Award size={24} color={colors.button} />
                   </View>
                   <Text style={[styles.badgeName, { color: colors.text }]} numberOfLines={1}>
@@ -229,6 +283,17 @@ export default function ProfileTab() {
               </TouchableOpacity>
             </View>
 
+            {/* Profile Image Picker */}
+            <TouchableOpacity style={styles.imagePickerContainer} onPress={pickImage}>
+              <View style={[styles.imagePicker, { borderColor: colors.border }]}>
+                {renderAvatar(100, editImage)}
+                <View style={[styles.imagePickerOverlay, { backgroundColor: 'rgba(0,0,0,0.4)' }]}>
+                  <Camera size={28} color="#fff" />
+                  <Text style={styles.imagePickerText}>Change Photo</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+
             <Text style={[styles.inputLabel, { color: colors.text }]}>Your Name</Text>
             <TextInput
               style={[
@@ -258,7 +323,7 @@ export default function ProfileTab() {
           onPress={() => setShowBadgeModal(false)}
         >
           <View style={[styles.badgeModalContent, { backgroundColor: colors.background }]}>
-            <View style={[styles.badgeModalIcon, { borderColor: colors.button }]}>
+            <View style={[styles.badgeModalIcon, { borderColor: colors.button, backgroundColor: colors.button + '15' }]}>
               <Award size={40} color={colors.button} />
             </View>
             <Text style={[styles.badgeModalName, { color: colors.text }]}>
@@ -289,10 +354,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 24,
   },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  avatarContainer: {
+    position: 'relative',
+  },
+  avatarBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerInfo: {
     flex: 1,
@@ -324,15 +397,13 @@ const styles = StyleSheet.create({
   statCard: {
     width: '47%',
     padding: 16,
-    borderRadius: 8,
-    borderWidth: 1,
+    borderRadius: 16,
     alignItems: 'center',
   },
   statValue: {
     fontSize: 28,
     fontFamily: 'Satoshi-Black',
     marginTop: 8,
-    paddingVertical: 12,
   },
   statLabel: {
     fontSize: 12,
@@ -341,8 +412,7 @@ const styles = StyleSheet.create({
   },
   section: {
     padding: 20,
-    borderRadius: 8,
-    borderWidth: 1,
+    borderRadius: 16,
     marginBottom: 16,
   },
   sectionTitle: {
@@ -416,7 +486,7 @@ const styles = StyleSheet.create({
   badge: {
     width: '30%',
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
   },
   badgePlaceholder: {
@@ -452,7 +522,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   modalContent: {
-    borderRadius: 8,
+    borderRadius: 20,
     padding: 20,
   },
   modalHeader: {
@@ -469,6 +539,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Satoshi-Bold',
   },
+  imagePickerContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  imagePicker: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 2,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  imagePickerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imagePickerText: {
+    color: '#fff',
+    fontSize: 10,
+    fontFamily: 'Satoshi-Medium',
+    marginTop: 4,
+  },
   inputLabel: {
     fontSize: 14,
     fontFamily: 'Satoshi-Medium',
@@ -482,7 +579,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   badgeModalContent: {
-    borderRadius: 8,
+    borderRadius: 20,
     padding: 32,
     alignItems: 'center',
   },

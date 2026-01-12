@@ -17,6 +17,7 @@ export interface EntriesData {
 export interface UserProfile {
   name: string;
   createdAt: string;
+  profileImage: string | null;
 }
 
 export interface StreakData {
@@ -37,12 +38,20 @@ export interface Badge {
 export const BADGES: Badge[] = [
   { id: 'first_entry', name: 'First Steps', description: 'Log your first mood', icon: '🐣', unlockedAt: null },
   { id: 'week_streak', name: 'Week Warrior', description: '7 day streak', icon: '🔥', unlockedAt: null },
+  { id: 'two_weeks', name: 'Fortnight', description: '14 day streak', icon: '🏆', unlockedAt: null },
   { id: 'month_streak', name: 'Monthly Master', description: '30 day streak', icon: '⭐', unlockedAt: null },
   { id: 'hundred_days', name: 'Century Club', description: 'Log 100 days total', icon: '💯', unlockedAt: null },
   { id: 'great_week', name: 'Great Week', description: '7 great days in a row', icon: '🌟', unlockedAt: null },
   { id: 'note_writer', name: 'Reflector', description: 'Write 10 notes', icon: '📝', unlockedAt: null },
   { id: 'fifty_notes', name: 'Storyteller', description: 'Write 50 notes', icon: '📖', unlockedAt: null },
-  { id: 'two_weeks', name: 'Fortnight', description: '14 day streak', icon: '🏆', unlockedAt: null },
+  // New badges
+  { id: 'early_bird', name: 'Early Bird', description: 'Log before 8am', icon: '🌅', unlockedAt: null },
+  { id: 'night_owl', name: 'Night Owl', description: 'Log after 10pm', icon: '🌙', unlockedAt: null },
+  { id: 'mood_rainbow', name: 'Mood Rainbow', description: 'Experience all 5 moods', icon: '🌈', unlockedAt: null },
+  { id: 'comeback_kid', name: 'Comeback Kid', description: 'Log great after 3+ tough days', icon: '💪', unlockedAt: null },
+  { id: 'weekend_warrior', name: 'Weekend Warrior', description: 'Log every weekend for a month', icon: '📅', unlockedAt: null },
+  { id: 'half_year', name: 'Half Year Hero', description: '180 day streak', icon: '🎖️', unlockedAt: null },
+  { id: 'year_strong', name: 'Year Strong', description: '365 day streak', icon: '👑', unlockedAt: null },
 ];
 
 export const MOOD_IMAGES: Record<string, ImageSourcePropType> = {
@@ -51,7 +60,6 @@ export const MOOD_IMAGES: Record<string, ImageSourcePropType> = {
   ok: require('../assets/moods/perchly-ok.png'),
   notgood: require('../assets/moods/perchly-notgood.png'),
   bad: require('../assets/moods/perchly-bad.png'),
-  sus: require('../assets/images/sus.png')
 };
 
 export const MOOD_COLORS: Record<string, string> = {
@@ -221,6 +229,12 @@ const checkBadgesForEntries = (entriesData: EntriesData, currentBadges: Badge[])
   if (streakData.current >= 30 || streakData.longest >= 30) {
     updatedBadges = unlockBadge('month_streak', updatedBadges);
   }
+  if (streakData.current >= 180 || streakData.longest >= 180) {
+    updatedBadges = unlockBadge('half_year', updatedBadges);
+  }
+  if (streakData.current >= 365 || streakData.longest >= 365) {
+    updatedBadges = unlockBadge('year_strong', updatedBadges);
+  }
 
   // Great week badge (check for any 7 consecutive great days in history)
   const sortedDates = Object.keys(entriesData).sort((a, b) => a.localeCompare(b));
@@ -234,6 +248,63 @@ const checkBadgesForEntries = (entriesData: EntriesData, currentBadges: Badge[])
       }
     } else {
       consecutiveGreatDays = 0;
+    }
+  }
+
+  // Mood Rainbow - check if all 5 moods have been logged
+  const moodsLogged = new Set(Object.values(entriesData).map(e => e.mood).filter(Boolean));
+  if (moodsLogged.size >= 5) {
+    updatedBadges = unlockBadge('mood_rainbow', updatedBadges);
+  }
+
+  // Comeback Kid - check for great day after 3+ tough days
+  const sortedDesc = Object.keys(entriesData).sort((a, b) => b.localeCompare(a));
+  for (let i = 0; i < sortedDesc.length; i++) {
+    const entry = entriesData[sortedDesc[i]];
+    if (entry.mood === 'great') {
+      // Count consecutive bad/notgood days before this
+      let toughDays = 0;
+      for (let j = i + 1; j < sortedDesc.length; j++) {
+        const prevMood = entriesData[sortedDesc[j]].mood;
+        if (prevMood === 'bad' || prevMood === 'notgood') {
+          toughDays++;
+        } else {
+          break;
+        }
+      }
+      if (toughDays >= 3) {
+        updatedBadges = unlockBadge('comeback_kid', updatedBadges);
+        break;
+      }
+    }
+  }
+
+  // Weekend Warrior - check for 4 consecutive weekends (8 weekend days)
+  const weekendDays = sortedDates.filter(dateKey => {
+    const [year, month, day] = dateKey.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    const dayOfWeek = date.getDay();
+    return dayOfWeek === 0 || dayOfWeek === 6; // Sunday or Saturday
+  });
+  if (weekendDays.length >= 8) {
+    // Check if there are 4 consecutive weekends
+    let consecutiveWeekends = 0;
+    let lastWeekend = -1;
+    for (const dateKey of weekendDays) {
+      const [year, month, day] = dateKey.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      const weekNum = Math.floor(date.getTime() / (7 * 24 * 60 * 60 * 1000));
+      if (lastWeekend === -1 || weekNum === lastWeekend || weekNum === lastWeekend + 1) {
+        if (weekNum !== lastWeekend) consecutiveWeekends++;
+        lastWeekend = weekNum;
+        if (consecutiveWeekends >= 4) {
+          updatedBadges = unlockBadge('weekend_warrior', updatedBadges);
+          break;
+        }
+      } else {
+        consecutiveWeekends = 1;
+        lastWeekend = weekNum;
+      }
     }
   }
 
@@ -251,6 +322,7 @@ interface AppContextType {
   streak: StreakData;
   showConfetti: boolean;
   showCrisisModal: boolean;
+  showStreakCelebration: boolean;
   toggleTheme: () => void;
   setSelectedDate: (date: string) => void;
   navigateToDate: (date: string) => void;
@@ -258,6 +330,7 @@ interface AppContextType {
   saveEntry: (mood: MoodType, note: string) => Promise<void>;
   setShowConfetti: (show: boolean) => void;
   setShowCrisisModal: (show: boolean) => void;
+  setShowStreakCelebration: (show: boolean) => void;
   updateProfile: (profile: UserProfile) => Promise<void>;
   formatDateKey: (date: Date) => string;
   formatDisplayDate: (dateKey: string, options?: Intl.DateTimeFormatOptions) => string;
@@ -282,6 +355,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [badges, setBadges] = useState<Badge[]>(BADGES);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
+  const [showStreakCelebration, setShowStreakCelebration] = useState(false);
   const shouldResetDailyRef = useRef(true);
 
   const colors = THEMES[theme];
@@ -401,6 +475,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const saveEntry = async (mood: MoodType, note: string) => {
     if (!mood) return;
 
+    const isNewEntry = !entries[todayKey];
+    const previousStreak = streak.current;
+    
     const newEntries = {
       ...entries,
       [todayKey]: { mood, note },
@@ -414,6 +491,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (mood === 'great') {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
+      }
+
+      // Check for streak celebration (only on new entries that extend streak)
+      if (isNewEntry) {
+        const newStreak = calculateStreakHelper(newEntries);
+        if (newStreak.current > previousStreak && newStreak.current >= 2) {
+          // Small delay so it doesn't overlap with confetti
+          setTimeout(() => {
+            setShowStreakCelebration(true);
+          }, mood === 'great' ? 3500 : 500);
+        }
       }
 
       // Check for crisis modal (5+ consecutive bad days)
@@ -431,7 +519,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       // Check and update badges
-      const updatedBadges = checkBadgesForEntries(newEntries, badges);
+      let updatedBadges = checkBadgesForEntries(newEntries, badges);
+      
+      // Time-based badges (only on new entries)
+      if (isNewEntry) {
+        const currentHour = new Date().getHours();
+        if (currentHour < 8) {
+          updatedBadges = unlockBadge('early_bird', updatedBadges);
+        }
+        if (currentHour >= 22) {
+          updatedBadges = unlockBadge('night_owl', updatedBadges);
+        }
+      }
+      
       if (JSON.stringify(updatedBadges) !== JSON.stringify(badges)) {
         setBadges(updatedBadges);
         await AsyncStorage.setItem(BADGES_KEY, JSON.stringify(updatedBadges));
@@ -544,6 +644,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         streak,
         showConfetti,
         showCrisisModal,
+        showStreakCelebration,
         toggleTheme,
         setSelectedDate,
         navigateToDate,
@@ -551,6 +652,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         saveEntry,
         setShowConfetti,
         setShowCrisisModal,
+        setShowStreakCelebration,
         updateProfile,
         formatDateKey,
         formatDisplayDate,
