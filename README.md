@@ -1,9 +1,29 @@
-![sus Peter](/assets/images/sus.png)
+![Peter](/assets/images/peter.png)
 
 # Perchly - Daily Mood Tracker
 
 Peter says hello & welcome! This is **Perchly**. An easy-to-use app for tracking your mood throughout the year, with comprehensive monthly, weekly, and daily breakdowns. Peter just wants you to check in when you can.
 
+# Gallery
+
+## Moods
+All moods are reflect as different images of Peter.
+
+| | | |
+|:---:|:---:|:---:|
+| ![Great Peter](/assets/moods/perchly-great.png) | ![Good Peter](/assets/moods/perchly-good.png) | ![OK Peter](/assets/moods/perchly-ok.png) |
+| ![Not Good Peter](/assets/moods/perchly-notgood.png) | ![Bad Peter](/assets/moods/perchly-bad.png) |
+
+
+## App Flow
+These screenshots include actual entries I've made, which I've omitted from the screenshots (overview, weekly, & daily). Text would otherwise appear in the relevant containers.
+
+| | | |
+|:---:|:---:|:---:|
+| ![image 1](/assets/app-images/overview.PNG) | ![image 2](/assets/app-images/monthly.PNG) | ![image 3](/assets/app-images/weekly.PNG) |
+| ![image 4](/assets/app-images/daily.PNG) | ![image 5](/assets/app-images/search.PNG) | ![image 6](/assets/app-images/profile.PNG) |
+
+---
 
 ## Useful Links For This Project (Expo)
 
