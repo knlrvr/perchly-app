@@ -1,27 +1,41 @@
 ![Peter](/assets/images/peter.png)
 
+![Version 0.1.0](https://img.shields.io/badge/Version-0.1.0-blue) ![description](https://img.shields.io/badge/01.20.26-grey) 
+
 # Perchly - Daily Mood Tracker
 
 Peter says hello & welcome! This is **Perchly**. An easy-to-use app for tracking your mood throughout the year, with comprehensive monthly, weekly, and daily breakdowns. Peter just wants you to check in when you can.
 
-# Gallery
+# Use
+## Overview (Yearly)
+When you launch the app, you're greeted with a graph of the year, where each day reflects the color of the corresponding mood for that day. If no mood was logged for a given day, that day will appear grey. 
 
+## Timeframes (Month, Week, Day)
+You can select `month`, `week`, or `day`, where you'll see refined overviews of your moods in those given time frames. Selecting a specific day in the `monthly` or `weekly` tabs will take you to that specific day in the `daily` tab, where you can view the logged mood and entry. 
+
+## Search
+You can view your previous entries either by selecting the days from the `month`, `week`, or `day` tabs, or by searching for them in the `search` tab, where you can enter keywords or specific moods to find entries. 
+
+## Profile
+On the `profile` tab, you can view your info, streaks, total entries, mood distribution, weekly patterns, and badges you've earned. 
+
+
+# Gallery
 ## Moods
-All moods are reflect as different images of Peter.
+All moods are reflected as different images of Peter.
 
 | | | |
 |:---:|:---:|:---:|
-| ![Great Peter](/assets/moods/perchly-great.png) | ![Good Peter](/assets/moods/perchly-good.png) | ![OK Peter](/assets/moods/perchly-ok.png) |
-| ![Not Good Peter](/assets/moods/perchly-notgood.png) | ![Bad Peter](/assets/moods/perchly-bad.png) |
-
+|![Great Peter](/assets/moods/perchly-great.png)![description](https://img.shields.io/badge/Great-grey)|![Good Peter](/assets/moods/perchly-good.png)![description](https://img.shields.io/badge/Good-grey)|![OK Peter](/assets/moods/perchly-ok.png)![description](https://img.shields.io/badge/Ok-grey)|
+|![Not Good Peter](/assets/moods/perchly-notgood.png)![description](https://img.shields.io/badge/Not_Good-grey)|![Bad Peter](/assets/moods/perchly-bad.png)![description](https://img.shields.io/badge/Bad-grey)|
 
 ## App Flow
 These screenshots include actual entries I've made, which I've omitted from the screenshots (overview, weekly, & daily). Text would otherwise appear in the relevant containers.
 
 | | | |
 |:---:|:---:|:---:|
-| ![image 1](/assets/app-images/overview.PNG) | ![image 2](/assets/app-images/monthly.PNG) | ![image 3](/assets/app-images/weekly.PNG) |
-| ![image 4](/assets/app-images/daily.PNG) | ![image 5](/assets/app-images/search.PNG) | ![image 6](/assets/app-images/profile.PNG) |
+|![image 1](/assets/app-images/overview.PNG)![description](https://img.shields.io/badge/Overview/Year-grey)|![image 2](/assets/app-images/monthly.PNG)![description](https://img.shields.io/badge/Monthly-grey)|![image 3](/assets/app-images/weekly.PNG)![description](https://img.shields.io/badge/Weekly-grey)|
+|![image 4](/assets/app-images/daily.PNG)![description](https://img.shields.io/badge/Daily-grey)|![image 5](/assets/app-images/search.PNG)![description](https://img.shields.io/badge/Search-grey)|![image 6](/assets/app-images/profile.PNG)![description](https://img.shields.io/badge/Profile-grey)|
 
 ---
 
