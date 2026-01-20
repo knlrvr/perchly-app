@@ -1,13 +1,15 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { MOOD_COLORS, MOOD_IMAGES, MOOD_LABELS, MOOD_ORDER, useApp } from '../../context/AppContext';
+
+const CIRCLE_GAP = 4;
 
 function MoodKey() {
   const { colors } = useApp();
 
   return (
-    <View style={[styles.moodKey, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+    <View style={[styles.moodKey, { backgroundColor: colors.surface }]}>
       <Text style={[styles.moodKeyTitle, { color: colors.text }]}>Mood Key</Text>
       <View style={styles.moodKeyItems}>
         {MOOD_ORDER.map((mood) => (
@@ -27,43 +29,39 @@ export default function OverviewTab() {
   const router = useRouter();
   const { entries, colors, formatDateKey, formatDisplayDate, todayKey, navigateToDate } = useApp();
   const [visibleEntries, setVisibleEntries] = useState(7);
+  const { width: screenWidth } = useWindowDimensions();
 
+  // Calculate circle size to fit ~18 per row (365 days ≈ 21 rows)
+  const availableWidth = screenWidth - 32; // padding
+  const circlesPerRow = 18;
+  const circleSize = Math.floor((availableWidth - (CIRCLE_GAP * (circlesPerRow - 1))) / circlesPerRow);
+  
+  // Generate entire year
   const generateYearGrid = () => {
-    const year = new Date().getFullYear();
-    const startDate = new Date(year, 0, 1);
-    const endDate = new Date(year, 11, 31);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
-    const days: { date: Date; key: string; isPast: boolean; isToday: boolean }[] = [];
+    const year = today.getFullYear();
+    
+    const startDate = new Date(year, 0, 1); // Jan 1
+    const endDate = new Date(year, 11, 31); // Dec 31
+    
+    const days: { date: Date; key: string; isToday: boolean; isFuture: boolean }[] = [];
     const current = new Date(startDate);
-
+    
     while (current <= endDate) {
       const key = formatDateKey(current);
-      const isPast = current < today;
       const isToday = current.getTime() === today.getTime();
-      days.push({ date: new Date(current), key, isPast, isToday });
+      const isFuture = current > today;
+      days.push({ date: new Date(current), key, isToday, isFuture });
       current.setDate(current.getDate() + 1);
     }
-
+    
     return days;
   };
 
-  const getWeeksGrid = () => {
-    const days = generateYearGrid();
-    const weeks: (typeof days[0] | null)[][] = [];
-
-    const firstDayOfWeek = days[0].date.getDay();
-    const paddedDays: (typeof days[0] | null)[] = [
-      ...Array(firstDayOfWeek).fill(null),
-      ...days,
-    ];
-
-    for (let i = 0; i < paddedDays.length; i += 7) {
-      weeks.push(paddedDays.slice(i, i + 7));
-    }
-
-    return weeks;
+  const handleDayPress = (dateKey: string) => {
+    navigateToDate(dateKey);
+    router.push('/daily');
   };
 
   const getAllEntriesSorted = () => {
@@ -72,82 +70,50 @@ export default function OverviewTab() {
       .map(([key, entry]) => ({ key, ...entry }));
   };
 
-  const handleDayPress = (dateKey: string) => {
-    navigateToDate(dateKey);
-    router.push('/daily');
-  };
-
-  const weeks = getWeeksGrid();
+  const days = generateYearGrid();
   const sortedEntries = getAllEntriesSorted();
   const displayedEntries = sortedEntries.slice(0, visibleEntries);
   const hasMoreEntries = sortedEntries.length > visibleEntries;
 
-  const screenWidth = Dimensions.get('window').width;
-  const cellSize = Math.floor((screenWidth - 40) / 53);
-  const cellMargin = 1;
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Year Title */}
         <Text style={[styles.yearTitle, { color: colors.text }]}>{new Date().getFullYear()}</Text>
-
-        <View style={styles.graphContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.grid}>
-              {weeks.map((week, weekIndex) => (
-                <View key={weekIndex} style={styles.week}>
-                  {week.map((day, dayIndex) => {
-                    if (!day) {
-                      return (
-                        <View
-                          key={`empty-${dayIndex}`}
-                          style={[
-                            styles.cell,
-                            {
-                              width: cellSize,
-                              height: cellSize,
-                              margin: cellMargin,
-                              backgroundColor: 'transparent',
-                            },
-                          ]}
-                        />
-                      );
-                    }
-
-                    const entry = entries[day.key];
-                    const moodColor = entry?.mood ? MOOD_COLORS[entry.mood] : colors.empty;
-
-                    return (
-                      <TouchableOpacity
-                        key={day.key}
-                        onPress={() => handleDayPress(day.key)}
-                        style={[
-                          styles.cell,
-                          {
-                            width: cellSize,
-                            height: cellSize,
-                            margin: cellMargin,
-                            backgroundColor: moodColor,
-                            opacity: day.isPast || day.isToday ? 1 : 0.3,
-                            borderRadius: cellSize / 2,
-                          },
-                        ]}
-                      />
-                    );
-                  })}
-                </View>
-              ))}
-            </View>
-          </ScrollView>
+        
+        {/* Circle Grid */}
+        <View style={styles.gridContainer}>
+          <View style={[styles.grid, { gap: CIRCLE_GAP }]}>
+            {days.map((day) => {
+              const entry = entries[day.key];
+              const moodColor = entry?.mood ? MOOD_COLORS[entry.mood] : colors.empty;
+              
+              return (
+                <TouchableOpacity
+                  key={day.key}
+                  onPress={() => handleDayPress(day.key)}
+                  style={[
+                    styles.circle,
+                    {
+                      width: circleSize,
+                      height: circleSize,
+                      backgroundColor: moodColor,
+                      opacity: day.isFuture ? 0.4 : 1,
+                      borderWidth: day.isToday ? 2 : 0,
+                      borderColor: day.isToday ? colors.button : 'transparent',
+                    },
+                  ]}
+                />
+              );
+            })}
+          </View>
         </View>
 
-        {/* Is this necessary on this page? */}
-        {/* <MoodKey /> */}
-
+        {/* Recent Entries */}
         <View style={styles.entriesSection}>
           <Text style={[styles.entriesTitle, { color: colors.text }]}>Recent Entries</Text>
           {displayedEntries.length === 0 ? (
-            <View style={[styles.emptyState, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <View style={[styles.emptyState, { backgroundColor: colors.surface }]}>
               <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
                 No entries yet. Start tracking your mood today!
               </Text>
@@ -157,7 +123,7 @@ export default function OverviewTab() {
               {displayedEntries.map((entry) => (
                 <TouchableOpacity
                   key={entry.key}
-                  style={[styles.entryCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  style={[styles.entryCard, { backgroundColor: colors.surface }]}
                   onPress={() => handleDayPress(entry.key)}
                 >
                   <View style={styles.entryLeft}>
@@ -183,11 +149,11 @@ export default function OverviewTab() {
 
               {hasMoreEntries && (
                 <TouchableOpacity
-                  style={[styles.showMoreButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  style={[styles.showMoreButton, { backgroundColor: colors.surface }]}
                   onPress={() => setVisibleEntries((prev) => prev + 7)}
                 >
                   <Text style={[styles.showMoreText, { color: colors.text }]}>
-                    Show more ({sortedEntries.length - visibleEntries} remaining)
+                    Show more
                   </Text>
                 </TouchableOpacity>
               )}
@@ -207,24 +173,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   yearTitle: {
-    fontSize: 28,
-    fontFamily: 'Satoshi-Black',
+    fontSize: 24,
+    fontFamily: 'Satoshi-Bold',
     textAlign: 'center',
-    marginVertical: 20,
+    marginTop: 16,
+    marginBottom: 8,
   },
-  graphContainer: {
-    marginBottom: 20,
+  gridContainer: {
+    paddingVertical: 12,
   },
   grid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
   },
-  week: {
-    flexDirection: 'column',
+  circle: {
+    borderRadius: 999,
   },
-  cell: {},
   moodKey: {
     padding: 16,
-    borderWidth: 1,
     borderRadius: 12,
     marginBottom: 24,
   },
@@ -246,7 +212,7 @@ const styles = StyleSheet.create({
   moodKeyImage: {
     width: 24,
     height: 24,
-    borderRadius: 2,
+    borderRadius: 12,
   },
   moodKeyLabel: {
     fontSize: 12,
@@ -262,7 +228,6 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     padding: 32,
-    borderWidth: 1,
     borderRadius: 12,
     alignItems: 'center',
   },
@@ -274,8 +239,7 @@ const styles = StyleSheet.create({
   entryCard: {
     flexDirection: 'row',
     padding: 14,
-    borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 10,
     alignItems: 'center',
   },
@@ -307,7 +271,6 @@ const styles = StyleSheet.create({
   },
   showMoreButton: {
     paddingVertical: 14,
-    borderWidth: 1,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 4,
