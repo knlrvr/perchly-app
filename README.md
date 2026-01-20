@@ -1,6 +1,6 @@
 ![Peter](/assets/images/peter.png)
 
-![Version 0.1.1](https://img.shields.io/badge/Version-0.1.0-blue) ![description](https://img.shields.io/badge/01.20.26-grey) 
+![Version 0.1.1](https://img.shields.io/badge/Version-0.1.1-blue) ![description](https://img.shields.io/badge/01.20.26-grey) 
 
 # Perchly - Daily Mood Tracker
 
