@@ -489,6 +489,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     alignItems: 'center',
+    flexGrow: 1,
   },
   badgePlaceholder: {
     width: 48,
