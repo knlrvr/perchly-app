@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { MOOD_COLORS, MOOD_IMAGES, MOOD_LABELS, MOOD_ORDER, useApp } from '../../context/AppContext';
 
-const CIRCLE_GAP = 4;
+const CIRCLE_GAP = 8;
 
 function MoodKey() {
   const { colors } = useApp();
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   gridContainer: {
-    paddingVertical: 12,
+    paddingVertical: 24,
   },
   grid: {
     flexDirection: 'row',
